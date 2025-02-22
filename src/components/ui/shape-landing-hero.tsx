@@ -85,7 +85,7 @@ function HeroGeometric({
             <div className="absolute inset-0 overflow-hidden">
                 <StarShape
                     delay={0.3}
-                    size={48}
+                    size={64}
                     rotate={12}
                     color="text-yellow-200"
                     className="left-[-10%] md:left-[-5%] top-[15%] md:top-[20%]"
@@ -93,7 +93,7 @@ function HeroGeometric({
 
                 <StarShape
                     delay={0.5}
-                    size={40}
+                    size={56}
                     rotate={-15}
                     color="text-yellow-100"
                     className="right-[-5%] md:right-[0%] top-[70%] md:top-[75%]"
@@ -101,7 +101,7 @@ function HeroGeometric({
 
                 <StarShape
                     delay={0.4}
-                    size={32}
+                    size={48}
                     rotate={-8}
                     color="text-yellow-300"
                     className="left-[5%] md:left-[10%] bottom-[5%] md:bottom-[10%]"
@@ -109,7 +109,7 @@ function HeroGeometric({
 
                 <StarShape
                     delay={0.6}
-                    size={24}
+                    size={40}
                     rotate={20}
                     color="text-yellow-200"
                     className="right-[15%] md:right-[20%] top-[10%] md:top-[15%]"
@@ -117,10 +117,51 @@ function HeroGeometric({
 
                 <StarShape
                     delay={0.7}
-                    size={20}
+                    size={36}
                     rotate={-25}
                     color="text-yellow-100"
                     className="left-[20%] md:left-[25%] top-[5%] md:top-[10%]"
+                />
+
+                {/* Additional stars */}
+                <StarShape
+                    delay={0.8}
+                    size={52}
+                    rotate={15}
+                    color="text-yellow-200"
+                    className="left-[40%] top-[8%]"
+                />
+
+                <StarShape
+                    delay={0.9}
+                    size={44}
+                    rotate={-20}
+                    color="text-yellow-100"
+                    className="right-[35%] bottom-[15%]"
+                />
+
+                <StarShape
+                    delay={1.0}
+                    size={58}
+                    rotate={25}
+                    color="text-yellow-300"
+                    className="left-[30%] bottom-[25%]"
+                />
+
+                <StarShape
+                    delay={1.1}
+                    size={50}
+                    rotate={-12}
+                    color="text-yellow-200"
+                    className="right-[25%] top-[45%]"
+                />
+
+                <StarShape
+                    delay={1.2}
+                    size={42}
+                    rotate={18}
+                    color="text-yellow-100"
+                    className="left-[15%] top-[35%]"
                 />
             </div>
 
