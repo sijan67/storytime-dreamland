@@ -1,4 +1,3 @@
-
 "use client";
 
 import { motion } from "framer-motion";
@@ -56,15 +55,19 @@ function StarShape({
     );
 }
 
+interface HeroGeometricProps {
+  badge?: string;
+  title1?: string;
+  title2?: string;
+  children?: React.ReactNode;
+}
+
 function HeroGeometric({
     badge = "Bedtime Stories",
     title1 = "Sweet Dreams &",
     title2 = "Magical Adventures",
-}: {
-    badge?: string;
-    title1?: string;
-    title2?: string;
-}) {
+    children,
+}: HeroGeometricProps) {
     const fadeUpVariants = {
         hidden: { opacity: 0, y: 30 },
         visible: (i: number) => ({
@@ -123,7 +126,6 @@ function HeroGeometric({
                     className="left-[20%] md:left-[25%] top-[5%] md:top-[10%]"
                 />
 
-                {/* Additional stars */}
                 <StarShape
                     delay={0.8}
                     size={52}
@@ -208,9 +210,7 @@ function HeroGeometric({
                         initial="hidden"
                         animate="visible"
                     >
-                        <p className="text-base sm:text-lg md:text-xl text-white/60 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
-                            Journey into a world of enchanting bedtime stories where dreams come alive and imagination knows no bounds.
-                        </p>
+                        {children}
                     </motion.div>
                 </div>
             </div>

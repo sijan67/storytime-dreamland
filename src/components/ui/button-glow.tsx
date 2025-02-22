@@ -1,11 +1,11 @@
 
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, HTMLMotionProps } from "framer-motion";
 
-interface ButtonGlowProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+type ButtonGlowProps = HTMLMotionProps<"button"> & {
   children: React.ReactNode;
   className?: string;
-}
+};
 
 export const ButtonGlow = ({ children, className, ...props }: ButtonGlowProps) => {
   return (
