@@ -11,15 +11,16 @@ import { ButtonGlow } from "@/components/ui/button-glow";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const Create = () => {
+  const navigate = useNavigate();
   const [voice, setVoice] = useState("");
   const [language, setLanguage] = useState("");
   const [context, setContext] = useState("");
 
   const handleSubmit = () => {
-    // Will implement in next step
-    console.log({ voice, language, context });
+    navigate("/create/loading");
   };
 
   return (

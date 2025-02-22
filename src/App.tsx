@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Choice from "./pages/Choice";
 import Create from "./pages/Create";
+import CreateLoading from "./pages/CreateLoading";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/home" element={<Home />} />
           <Route path="/choice" element={<Choice />} />
           <Route path="/create" element={<Create />} />
+          <Route path="/create/loading" element={<CreateLoading />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
