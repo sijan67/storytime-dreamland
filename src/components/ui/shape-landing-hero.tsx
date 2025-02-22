@@ -1,3 +1,4 @@
+
 "use client";
 
 import { motion } from "framer-motion";
@@ -78,15 +79,15 @@ function HeroGeometric({
     };
 
     return (
-        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#F1F0FB]">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-200/30 via-transparent to-blue-200/30 blur-3xl" />
+        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#1A1F2C]">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/30 via-transparent to-purple-900/30 blur-3xl" />
 
             <div className="absolute inset-0 overflow-hidden">
                 <StarShape
                     delay={0.3}
                     size={48}
                     rotate={12}
-                    color="text-purple-400"
+                    color="text-yellow-200"
                     className="left-[-10%] md:left-[-5%] top-[15%] md:top-[20%]"
                 />
 
@@ -94,7 +95,7 @@ function HeroGeometric({
                     delay={0.5}
                     size={40}
                     rotate={-15}
-                    color="text-blue-400"
+                    color="text-yellow-100"
                     className="right-[-5%] md:right-[0%] top-[70%] md:top-[75%]"
                 />
 
@@ -102,7 +103,7 @@ function HeroGeometric({
                     delay={0.4}
                     size={32}
                     rotate={-8}
-                    color="text-pink-400"
+                    color="text-yellow-300"
                     className="left-[5%] md:left-[10%] bottom-[5%] md:bottom-[10%]"
                 />
 
@@ -110,7 +111,7 @@ function HeroGeometric({
                     delay={0.6}
                     size={24}
                     rotate={20}
-                    color="text-yellow-400"
+                    color="text-yellow-200"
                     className="right-[15%] md:right-[20%] top-[10%] md:top-[15%]"
                 />
 
@@ -118,7 +119,7 @@ function HeroGeometric({
                     delay={0.7}
                     size={20}
                     rotate={-25}
-                    color="text-cyan-400"
+                    color="text-yellow-100"
                     className="left-[20%] md:left-[25%] top-[5%] md:top-[10%]"
                 />
             </div>
@@ -130,11 +131,11 @@ function HeroGeometric({
                         variants={fadeUpVariants}
                         initial="hidden"
                         animate="visible"
-                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100/50 border border-purple-200/50 mb-8 md:mb-12"
+                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] mb-8 md:mb-12"
                     >
-                        <Moon className="h-4 w-4 text-purple-400" />
-                        <Star className="h-3 w-3 text-purple-400" />
-                        <span className="text-sm text-purple-700 tracking-wide">
+                        <Moon className="h-4 w-4 text-yellow-200" />
+                        <Star className="h-3 w-3 text-yellow-200" />
+                        <span className="text-sm text-white/80 tracking-wide">
                             {badge}
                         </span>
                     </motion.div>
@@ -146,13 +147,13 @@ function HeroGeometric({
                         animate="visible"
                     >
                         <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold mb-6 md:mb-8 tracking-tight">
-                            <span className="bg-clip-text text-transparent bg-gradient-to-b from-purple-600 to-purple-800">
+                            <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80">
                                 {title1}
                             </span>
                             <br />
                             <span
                                 className={cn(
-                                    "bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-blue-500 to-pink-400"
+                                    "bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 via-white/90 to-yellow-200"
                                 )}
                             >
                                 {title2}
@@ -166,14 +167,14 @@ function HeroGeometric({
                         initial="hidden"
                         animate="visible"
                     >
-                        <p className="text-base sm:text-lg md:text-xl text-purple-700/80 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
+                        <p className="text-base sm:text-lg md:text-xl text-white/60 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
                             Journey into a world of enchanting bedtime stories where dreams come alive and imagination knows no bounds.
                         </p>
                     </motion.div>
                 </div>
             </div>
 
-            <div className="absolute inset-0 bg-gradient-to-t from-[#F1F0FB] via-transparent to-[#F1F0FB]/80 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1A1F2C] via-transparent to-[#1A1F2C]/80 pointer-events-none" />
         </div>
     );
 }
