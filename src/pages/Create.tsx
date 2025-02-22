@@ -36,7 +36,7 @@ const Create = () => {
           className="mt-12 w-full max-w-md mx-auto space-y-6 px-4"
         >
           <Select value={voice} onValueChange={setVoice}>
-            <SelectTrigger className="w-full bg-white/[0.03] border-white/10 text-white">
+            <SelectTrigger className="w-full bg-white/[0.02] border-white/5 text-white/90 hover:bg-white/[0.04] transition-colors">
               <SelectValue placeholder="Choose a Voice" />
             </SelectTrigger>
             <SelectContent>
@@ -48,7 +48,7 @@ const Create = () => {
           </Select>
 
           <Select value={language} onValueChange={setLanguage}>
-            <SelectTrigger className="w-full bg-white/[0.03] border-white/10 text-white">
+            <SelectTrigger className="w-full bg-white/[0.02] border-white/5 text-white/90 hover:bg-white/[0.04] transition-colors">
               <SelectValue placeholder="Select Language" />
             </SelectTrigger>
             <SelectContent>
@@ -63,7 +63,7 @@ const Create = () => {
             value={context}
             onChange={(e) => setContext(e.target.value)}
             placeholder="Describe your story... (e.g., 'A magical adventure about a brave little dragon learning to fly')"
-            className="min-h-[120px] bg-white/[0.03] border-white/10 text-white placeholder:text-white/50"
+            className="min-h-[120px] bg-white/[0.02] border-white/5 text-white/90 placeholder:text-white/40 hover:bg-white/[0.04] transition-colors"
           />
 
           <ButtonGlow 
