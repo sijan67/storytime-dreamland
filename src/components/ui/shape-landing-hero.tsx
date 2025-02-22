@@ -1,4 +1,3 @@
-
 "use client";
 
 import { motion } from "framer-motion";
@@ -79,7 +78,7 @@ function HeroGeometric({
     };
 
     return (
-        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#FEF7CD]">
+        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#F1F0FB]">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-200/30 via-transparent to-blue-200/30 blur-3xl" />
 
             <div className="absolute inset-0 overflow-hidden">
@@ -174,7 +173,7 @@ function HeroGeometric({
                 </div>
             </div>
 
-            <div className="absolute inset-0 bg-gradient-to-t from-[#FEF7CD] via-transparent to-[#FEF7CD]/80 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#F1F0FB] via-transparent to-[#F1F0FB]/80 pointer-events-none" />
         </div>
     );
 }
