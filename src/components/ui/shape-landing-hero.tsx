@@ -5,20 +5,18 @@ import { motion } from "framer-motion";
 import { Moon, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-function ElegantShape({
+function StarShape({
     className,
     delay = 0,
-    width = 400,
-    height = 100,
+    size = 24,
     rotate = 0,
-    gradient = "from-white/[0.08]",
+    color = "text-yellow-300",
 }: {
     className?: string;
     delay?: number;
-    width?: number;
-    height?: number;
+    size?: number;
     rotate?: number;
-    gradient?: string;
+    color?: string;
 }) {
     return (
         <motion.div
@@ -43,29 +41,16 @@ function ElegantShape({
             <motion.div
                 animate={{
                     y: [0, 15, 0],
+                    scale: [1, 1.2, 1],
                 }}
                 transition={{
                     duration: 12,
                     repeat: Number.POSITIVE_INFINITY,
                     ease: "easeInOut",
                 }}
-                style={{
-                    width,
-                    height,
-                }}
                 className="relative"
             >
-                <div
-                    className={cn(
-                        "absolute inset-0 rounded-full",
-                        "bg-gradient-to-r to-transparent",
-                        gradient,
-                        "backdrop-blur-[2px] border-2 border-white/[0.15]",
-                        "shadow-[0_8px_32px_0_rgba(255,255,255,0.1)]",
-                        "after:absolute after:inset-0 after:rounded-full",
-                        "after:bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.2),transparent_70%)]"
-                    )}
-                />
+                <Star className={cn("w-full h-full", color)} size={size} fill="currentColor" />
             </motion.div>
         </motion.div>
     );
@@ -94,52 +79,47 @@ function HeroGeometric({
     };
 
     return (
-        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#1a1a2e]">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/[0.05] via-transparent to-blue-500/[0.05] blur-3xl" />
+        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#FEF7CD]">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-200/30 via-transparent to-blue-200/30 blur-3xl" />
 
             <div className="absolute inset-0 overflow-hidden">
-                <ElegantShape
+                <StarShape
                     delay={0.3}
-                    width={600}
-                    height={140}
+                    size={48}
                     rotate={12}
-                    gradient="from-purple-500/[0.15]"
+                    color="text-purple-400"
                     className="left-[-10%] md:left-[-5%] top-[15%] md:top-[20%]"
                 />
 
-                <ElegantShape
+                <StarShape
                     delay={0.5}
-                    width={500}
-                    height={120}
+                    size={40}
                     rotate={-15}
-                    gradient="from-blue-500/[0.15]"
+                    color="text-blue-400"
                     className="right-[-5%] md:right-[0%] top-[70%] md:top-[75%]"
                 />
 
-                <ElegantShape
+                <StarShape
                     delay={0.4}
-                    width={300}
-                    height={80}
+                    size={32}
                     rotate={-8}
-                    gradient="from-pink-500/[0.15]"
+                    color="text-pink-400"
                     className="left-[5%] md:left-[10%] bottom-[5%] md:bottom-[10%]"
                 />
 
-                <ElegantShape
+                <StarShape
                     delay={0.6}
-                    width={200}
-                    height={60}
+                    size={24}
                     rotate={20}
-                    gradient="from-yellow-500/[0.15]"
+                    color="text-yellow-400"
                     className="right-[15%] md:right-[20%] top-[10%] md:top-[15%]"
                 />
 
-                <ElegantShape
+                <StarShape
                     delay={0.7}
-                    width={150}
-                    height={40}
+                    size={20}
                     rotate={-25}
-                    gradient="from-cyan-500/[0.15]"
+                    color="text-cyan-400"
                     className="left-[20%] md:left-[25%] top-[5%] md:top-[10%]"
                 />
             </div>
@@ -151,11 +131,11 @@ function HeroGeometric({
                         variants={fadeUpVariants}
                         initial="hidden"
                         animate="visible"
-                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] mb-8 md:mb-12"
+                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100/50 border border-purple-200/50 mb-8 md:mb-12"
                     >
-                        <Moon className="h-4 w-4 text-yellow-300" />
-                        <Star className="h-3 w-3 text-yellow-300" />
-                        <span className="text-sm text-white/60 tracking-wide">
+                        <Moon className="h-4 w-4 text-purple-400" />
+                        <Star className="h-3 w-3 text-purple-400" />
+                        <span className="text-sm text-purple-700 tracking-wide">
                             {badge}
                         </span>
                     </motion.div>
@@ -167,13 +147,13 @@ function HeroGeometric({
                         animate="visible"
                     >
                         <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold mb-6 md:mb-8 tracking-tight">
-                            <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80">
+                            <span className="bg-clip-text text-transparent bg-gradient-to-b from-purple-600 to-purple-800">
                                 {title1}
                             </span>
                             <br />
                             <span
                                 className={cn(
-                                    "bg-clip-text text-transparent bg-gradient-to-r from-purple-300 via-white/90 to-blue-300"
+                                    "bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-blue-500 to-pink-400"
                                 )}
                             >
                                 {title2}
@@ -187,14 +167,14 @@ function HeroGeometric({
                         initial="hidden"
                         animate="visible"
                     >
-                        <p className="text-base sm:text-lg md:text-xl text-white/40 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
+                        <p className="text-base sm:text-lg md:text-xl text-purple-700/80 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
                             Journey into a world of enchanting bedtime stories where dreams come alive and imagination knows no bounds.
                         </p>
                     </motion.div>
                 </div>
             </div>
 
-            <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e] via-transparent to-[#1a1a2e]/80 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#FEF7CD] via-transparent to-[#FEF7CD]/80 pointer-events-none" />
         </div>
     );
 }
