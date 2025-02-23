@@ -7,11 +7,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { FileText, Edit, LogOut } from "lucide-react";
+import { FileText, Edit, LogOut, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const StarShape = ({
   className,
@@ -75,11 +77,18 @@ const Dashboard = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
-  const stories = [
-    { title: "The Rabbit and the Turtle", id: 1 },
-    { title: "Adventure of Dragon", id: 2 },
-    { title: "Little Red Robinhood", id: 3 },
-  ];
+  const { data: stories, isLoading } = useQuery({
+    queryKey: ['stories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('stories')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
   return (
     <div className="min-h-screen bg-[#1A1F2C] text-white relative overflow-hidden">
@@ -120,6 +129,19 @@ const Dashboard = () => {
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
+                <TabsTrigger value="read-stories" className="py-3">
+                  <BookOpen size={16} strokeWidth={2} />
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="px-2 py-1 text-xs">
+                Read Stories
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <TabsTrigger value="create" className="py-3" onClick={() => navigate("/create")}>
                   <Edit size={16} strokeWidth={2} />
                 </TabsTrigger>
@@ -148,15 +170,56 @@ const Dashboard = () => {
           <TabsContent value="your-stories" className="m-0">
             <h2 className="text-2xl font-bold mb-6">Your Stories</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {stories.map((story) => (
+              {stories?.map((story) => (
                 <div
                   key={story.id}
                   className="p-6 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors cursor-pointer"
                   onClick={() => navigate(`/story/${story.id}`)}
                 >
                   <h3 className="text-lg font-medium">{story.title}</h3>
+                  <p className="text-sm text-gray-400 mt-2">
+                    {new Date(story.created_at).toLocaleDateString()}
+                  </p>
                 </div>
               ))}
+              {isLoading && (
+                <div className="col-span-full text-center text-gray-400">
+                  Loading stories...
+                </div>
+              )}
+              {!isLoading && !stories?.length && (
+                <div className="col-span-full text-center text-gray-400">
+                  No stories found. Create your first story!
+                </div>
+              )}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="read-stories" className="m-0">
+            <h2 className="text-2xl font-bold mb-6">Read Stories</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {stories?.map((story) => (
+                <div
+                  key={story.id}
+                  className="p-6 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors cursor-pointer"
+                  onClick={() => navigate(`/story/${story.id}`)}
+                >
+                  <h3 className="text-lg font-medium">{story.title}</h3>
+                  <p className="text-sm text-gray-400 mt-2">
+                    {new Date(story.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="col-span-full text-center text-gray-400">
+                  Loading stories...
+                </div>
+              )}
+              {!isLoading && !stories?.length && (
+                <div className="col-span-full text-center text-gray-400">
+                  No stories available to read yet.
+                </div>
+              )}
             </div>
           </TabsContent>
         </div>
