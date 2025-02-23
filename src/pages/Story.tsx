@@ -9,19 +9,31 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface StorySegment {
+  text: string;
+  imageUrl: string;
+  image_description: string;
+}
+
+interface StoryContent {
+  segments: StorySegment[];
+  title: string;
+}
+
 const Story = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { id } = useParams(); // Get story ID from URL if viewing saved story
+  const { id } = useParams();
   const [isPlaying, setIsPlaying] = useState(false);
   const [story, setStory] = useState<{
     title: string;
-    content: string;
+    content: StoryContent;
+    firstImage?: string;
+    firstText?: string;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch story if we have an ID
   useEffect(() => {
     const fetchStory = async () => {
       if (!id) {
@@ -39,10 +51,14 @@ const Story = () => {
         if (error) throw error;
 
         if (data) {
-          const parsedContent = JSON.parse(data.content);
+          const parsedContent = JSON.parse(data.content) as StoryContent;
+          const firstSegment = parsedContent.segments[0];
+          
           setStory({
             title: data.title,
-            content: parsedContent.content,
+            content: parsedContent,
+            firstImage: firstSegment?.imageUrl,
+            firstText: firstSegment?.text,
           });
         }
       } catch (error) {
@@ -137,9 +153,19 @@ const Story = () => {
           transition={{ duration: 0.5 }}
           className="mt-12 w-full max-w-2xl mx-auto space-y-8 px-4"
         >
+          {story.firstImage && (
+            <div className="aspect-video rounded-lg overflow-hidden mb-6">
+              <img
+                src={story.firstImage}
+                alt={`First scene of ${story.title}`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+
           <div className="bg-white/[0.02] border border-white/5 rounded-lg p-6 backdrop-blur-sm">
             <p className="text-white/90 leading-relaxed text-lg">
-              {story.content}
+              {story.firstText || story.content.segments[0]?.text}
             </p>
           </div>
 
