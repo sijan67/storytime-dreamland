@@ -3,7 +3,7 @@ import { ButtonGlow } from "@/components/ui/button-glow";
 import { TextGradient } from "@/components/ui/text-gradient";
 import { useNavigate } from "react-router-dom";
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AuthModal } from "@/components/AuthModal";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -12,9 +12,15 @@ const Home = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { user, signOut } = useAuth();
 
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
   const handleGetStarted = () => {
     if (user) {
-      navigate("/choice");
+      navigate("/dashboard");
     } else {
       setShowAuthModal(true);
     }

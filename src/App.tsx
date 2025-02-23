@@ -5,7 +5,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
 import Choice from "./pages/Choice";
 import Create from "./pages/Create";
 import CreateLoading from "./pages/CreateLoading";
@@ -24,11 +26,46 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/home" element={<Home />} />
-            <Route path="/choice" element={<Choice />} />
-            <Route path="/create" element={<Create />} />
-            <Route path="/create/loading" element={<CreateLoading />} />
-            <Route path="/story" element={<Story />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/choice"
+              element={
+                <ProtectedRoute>
+                  <Choice />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/create"
+              element={
+                <ProtectedRoute>
+                  <Create />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/create/loading"
+              element={
+                <ProtectedRoute>
+                  <CreateLoading />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/story/:id"
+              element={
+                <ProtectedRoute>
+                  <Story />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
