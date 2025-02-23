@@ -1,7 +1,7 @@
 
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
-import { ArrowLeft, Play, Upload, Pause, Save, Share2 } from "lucide-react";
+import { ArrowLeft, Play, Upload, Pause } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
@@ -131,24 +131,30 @@ const Create = () => {
     }
 
     try {
-      // Navigate to loading screen first
-      navigate("/create/loading");
-
-      const { data, error } = await supabase.functions.invoke('generate-story', {
+      // First, generate the story
+      console.log('Generating story...');
+      const { data: generatedStory, error: generateError } = await supabase.functions.invoke('generate-story', {
         body: { 
           context: context.trim(),
           voiceId: selectedVoice
         }
       });
 
-      if (error) throw error;
+      if (generateError) throw generateError;
+      
+      console.log('Story generated:', generatedStory);
 
-      // Save the generated story to the database
+      if (!generatedStory) {
+        throw new Error('No story data received');
+      }
+
+      // Then save it to the database
+      console.log('Saving story to database...');
       const { data: savedStory, error: saveError } = await supabase
         .from('stories')
         .insert({
-          title: data.title,
-          content: JSON.stringify(data),
+          title: generatedStory.title,
+          content: JSON.stringify(generatedStory),
           user_id: user?.id
         })
         .select()
@@ -156,17 +162,18 @@ const Create = () => {
 
       if (saveError) throw saveError;
 
-      // Navigate to the story view with the saved story ID
+      console.log('Story saved:', savedStory);
+
+      // Only navigate after everything is done
       navigate(`/story/${savedStory.id}`);
 
     } catch (error: any) {
-      console.error('Error generating story:', error);
+      console.error('Error in story generation process:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to generate story",
         variant: "destructive",
       });
-      // Navigate back to create page on error
       navigate("/create");
     }
   };
