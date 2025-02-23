@@ -51,14 +51,12 @@ const StoryPlayback = () => {
   useEffect(() => {
     const fetchStory = async () => {
       try {
-        // If we have state data, use it
         if (location.state?.story) {
           setStory(location.state.story);
           setIsLoading(false);
           return;
         }
 
-        // If no state data, fetch from API using ID
         if (!id) throw new Error('Story ID is required');
 
         const { data, error: fetchError } = await supabase
@@ -127,27 +125,14 @@ const StoryPlayback = () => {
     }
   };
 
-  const handleShareStory = async () => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to share stories",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!story) return;
+  const handleShare = async () => {
+    if (!story || !user) return;
 
     try {
       const { error } = await supabase
         .from('stories')
-        .insert({
-          title: story.title,
-          content: JSON.stringify(story.content),
-          user_id: user.id,
-          is_public: true,
-        });
+        .update({ is_public: true })
+        .eq('id', story.id);
 
       if (error) throw error;
 
@@ -156,7 +141,6 @@ const StoryPlayback = () => {
         description: "Story shared successfully!",
       });
 
-      navigate("/dashboard");
     } catch (err) {
       console.error('Error sharing story:', err);
       toast({
@@ -293,8 +277,7 @@ const StoryPlayback = () => {
               Math.min(story.content.segments.length - 1, prev + 1)
             )}
             onPlayPause={() => setIsPlaying(!isPlaying)}
-            onSave={() => {/* implement save logic */}}
-            onShare={() => {/* implement share logic */}}
+            onShare={handleShare}
           />
         </AnimatePresence>
       </div>
