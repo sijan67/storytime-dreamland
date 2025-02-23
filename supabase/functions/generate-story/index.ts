@@ -69,6 +69,27 @@ async function generateImage(prompt: string, retries = 3): Promise<string> {
   }
 }
 
+// Helper function to safely convert ArrayBuffer to Base64
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  try {
+    // Convert to Uint8Array first
+    const uint8Array = new Uint8Array(buffer);
+    // Process in chunks to avoid call stack issues
+    const chunks: string[] = [];
+    const chunkSize = 0x8000; // Process 32KB chunks
+
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.slice(i, i + chunkSize);
+      chunks.push(String.fromCharCode.apply(null, [...chunk]));
+    }
+
+    return btoa(chunks.join(''));
+  } catch (error) {
+    console.error('Error converting audio buffer to base64:', error);
+    throw new Error('Failed to process audio data');
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -147,10 +168,11 @@ serve(async (req) => {
 
         console.log('Narration generation completed, processing audio...');
         const narrationArrayBuffer = await narrationResponse.arrayBuffer();
+        console.log('Audio buffer size:', narrationArrayBuffer.byteLength);
 
         try {
-          const narrationBase64 = btoa(String.fromCharCode(...new Uint8Array(narrationArrayBuffer)));
-          console.log('Audio processing completed. Length:', narrationBase64.length);
+          const narrationBase64 = arrayBufferToBase64(narrationArrayBuffer);
+          console.log('Audio processing completed. Base64 length:', narrationBase64.length);
 
           const processedSegment = {
             ...segment,
@@ -164,6 +186,10 @@ serve(async (req) => {
 
         } catch (audioError) {
           console.error('Error processing audio:', audioError);
+          console.error('Audio buffer details:', {
+            byteLength: narrationArrayBuffer.byteLength,
+            isArrayBuffer: narrationArrayBuffer instanceof ArrayBuffer
+          });
           throw new Error(`Audio processing error: ${audioError.message}`);
         }
 
