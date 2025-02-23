@@ -1,6 +1,6 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
+import { fal } from "https://esm.sh/@fal-ai/client"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,6 +25,11 @@ Structure:
     }
   ]
 }`
+
+// Configure fal client
+fal.config({
+  credentials: Deno.env.get('FAL_AI_KEY')
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -68,39 +73,23 @@ serve(async (req) => {
     // 2. Generate images and audio for each segment
     const processedSegments = await Promise.all(story.segments.map(async (segment, index) => {
       console.log(`Processing segment ${index + 1}/${story.segments.length}`)
-      
-      // Generate image using FAL.ai Flux Pro REST API
+
       try {
-        const imageResponse = await fetch('https://api.fal.ai/v1/models/fal-ai/flux-pro/v1.1-ultra/inference', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Key ${Deno.env.get('FAL_AI_KEY')}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify({
-            input: {
-              prompt: segment.image_description,
-              image_size: "768x768",
-              seed: Math.floor(Math.random() * 1000000),
-              num_inference_steps: 25,
-              guidance_scale: 7.5,
-              negative_prompt: "ugly, blurry, low quality, distorted, disfigured"
-            }
-          }),
-        })
+        // Generate image using FAL.ai client library
+        const imageResult = await fal.subscribe("fal-ai/flux-pro/v1.1-ultra", {
+          input: {
+            prompt: segment.image_description,
+            image_size: {
+              width: 768,
+              height: 768
+            },
+            num_inference_steps: 25,
+            guidance_scale: 7.5,
+          }
+        });
 
-        if (!imageResponse.ok) {
-          const errorText = await imageResponse.text()
-          console.error('FAL.ai API error response:', errorText)
-          throw new Error(`FAL.ai API error: ${errorText}`)
-        }
-
-        const imageData = await imageResponse.json()
-        console.log('FAL.ai response:', imageData)
-
-        if (!imageData.output || !imageData.output.image) {
-          throw new Error('No image was generated')
+        if (!imageResult.data || !imageResult.data.images || !imageResult.data.images[0]) {
+          throw new Error('No image was generated');
         }
 
         // Generate narration using ElevenLabs
@@ -135,7 +124,7 @@ serve(async (req) => {
 
         return {
           ...segment,
-          imageUrl: imageData.output.image,
+          imageUrl: imageResult.data.images[0].url,
           narrationAudio: narrationBase64,
           ambienceAudio: ambienceBase64,
         }
@@ -160,7 +149,7 @@ serve(async (req) => {
     console.error('Error generating story:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
+      {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
