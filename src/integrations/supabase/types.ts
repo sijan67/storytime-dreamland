@@ -14,6 +14,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          is_public: boolean
           title: string
           user_id: string
         }
@@ -21,6 +22,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          is_public?: boolean
           title: string
           user_id: string
         }
@@ -28,6 +30,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          is_public?: boolean
           title?: string
           user_id?: string
         }

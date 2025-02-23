@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -80,9 +79,9 @@ const Dashboard = () => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
 
-  const { data: myStories, isLoading: isLoadingMyStories } = useQuery({
+  const { data: myStories, isLoading: isLoadingMyStories } = useQuery<Story[]>({
     queryKey: ['my-stories', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<Story[]> => {
       const { data, error } = await supabase
         .from('stories')
         .select('*')
@@ -90,14 +89,14 @@ const Dashboard = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return (data || []) as Story[];
+      return data || [];
     },
     enabled: !!user
   });
 
-  const { data: publicStories, isLoading: isLoadingPublicStories } = useQuery({
+  const { data: publicStories, isLoading: isLoadingPublicStories } = useQuery<Story[]>({
     queryKey: ['public-stories'],
-    queryFn: async () => {
+    queryFn: async (): Promise<Story[]> => {
       const { data, error } = await supabase
         .from('stories')
         .select('*')
@@ -105,7 +104,7 @@ const Dashboard = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return (data || []) as Story[];
+      return data || [];
     }
   });
 
