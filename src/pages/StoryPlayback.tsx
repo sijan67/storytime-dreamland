@@ -1,15 +1,16 @@
 import { useEffect, useState, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { ButtonGlow } from "@/components/ui/button-glow";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import CreateLoading from './CreateLoading';
 import { useAuth } from "@/contexts/AuthContext";
-import { StorySegment } from "@/components/story/StorySegment";
+import { StorySegment as StorySegmentComponent } from "@/components/story/StorySegment";
+import { HeroGeometric } from "@/components/ui/shape-landing-hero";
+import { Loading } from "@/components/ui/loading";
 
-interface StorySegmentType {
+interface StorySegment {
   text: string;
   image_description: string;
   audio_ambience: string;
@@ -20,8 +21,12 @@ interface StorySegmentType {
 }
 
 interface Story {
+  id: string;
   title: string;
-  segments: StorySegmentType[];
+  content: {
+    segments: StorySegment[];
+    title: string;
+  };
 }
 
 const SEGMENT_DURATION = 15000; // 15 seconds in milliseconds
@@ -29,6 +34,7 @@ const SEGMENT_DURATION = 15000; // 15 seconds in milliseconds
 const StoryPlayback = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { id } = useParams();
   const { toast } = useToast();
   const { user } = useAuth();
   
@@ -41,6 +47,46 @@ const StoryPlayback = () => {
   const narrationRef = useRef<HTMLAudioElement | null>(null);
   const ambienceRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const fetchStory = async () => {
+      try {
+        // If we have state data, use it
+        if (location.state?.story) {
+          setStory(location.state.story);
+          setIsLoading(false);
+          return;
+        }
+
+        // If no state data, fetch from API using ID
+        if (!id) throw new Error('Story ID is required');
+
+        const { data, error: fetchError } = await supabase
+          .from('stories')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (fetchError) throw fetchError;
+
+        if (data) {
+          const parsedContent = JSON.parse(data.content);
+          setStory({
+            id: data.id,
+            title: data.title,
+            content: parsedContent
+          });
+        }
+      } catch (err) {
+        console.error('Error loading story:', err);
+        setError('Missing required parameters. Please return to the create page.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStory();
+  }, [id, location.state]);
 
   const handleSaveStory = async () => {
     if (!user) {
@@ -59,7 +105,7 @@ const StoryPlayback = () => {
         .from('stories')
         .insert({
           title: story.title,
-          content: JSON.stringify(story),
+          content: JSON.stringify(story.content),
           user_id: user.id,
         });
 
@@ -98,7 +144,7 @@ const StoryPlayback = () => {
         .from('stories')
         .insert({
           title: story.title,
-          content: JSON.stringify(story),
+          content: JSON.stringify(story.content),
           user_id: user.id,
           is_public: true,
         });
@@ -122,51 +168,9 @@ const StoryPlayback = () => {
   };
 
   useEffect(() => {
-    const generateStory = async () => {
-      try {
-        if (!location.state || !location.state.context || !location.state.voiceId) {
-          throw new Error('Missing required parameters. Please return to the create page.');
-        }
-
-        const { context, voiceId } = location.state;
-        
-        const response = await supabase.functions.invoke('generate-story', {
-          body: { 
-            context,
-            voiceId
-          }
-        });
-
-        if (response.error) {
-          throw new Error(response.error.message || 'Failed to generate story');
-        }
-
-        if (!response.data) {
-          throw new Error('No story data received');
-        }
-
-        setStory(response.data);
-      } catch (err) {
-        console.error('Error generating story:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Failed to generate story';
-        setError(errorMessage);
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    generateStory();
-  }, [location.state, toast]);
-
-  useEffect(() => {
     if (!story || !isPlaying) return;
 
-    const currentSegment = story.segments[currentSegmentIndex];
+    const currentSegment = story.content.segments[currentSegmentIndex];
     if (!currentSegment) return;
 
     if (narrationRef.current) {
@@ -186,7 +190,7 @@ const StoryPlayback = () => {
 
     if (!currentSegment.interaction_point) {
       timerRef.current = setTimeout(() => {
-        if (currentSegmentIndex < story.segments.length - 1) {
+        if (currentSegmentIndex < story.content.segments.length - 1) {
           setCurrentSegmentIndex(prev => prev + 1);
         }
       }, SEGMENT_DURATION);
@@ -203,7 +207,7 @@ const StoryPlayback = () => {
 
   const handleNext = () => {
     if (!story) return;
-    if (currentSegmentIndex < story.segments.length - 1) {
+    if (currentSegmentIndex < story.content.segments.length - 1) {
       setCurrentSegmentIndex(prev => prev + 1);
     }
   };
@@ -237,24 +241,29 @@ const StoryPlayback = () => {
   };
 
   if (isLoading) {
-    return <CreateLoading />;
+    return <Loading />;
   }
 
-  if (error) {
+  if (error || !story) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-white/90 text-xl font-medium mb-4">Oops! Something went wrong</h2>
-          <p className="text-white/60 mb-6">{error}</p>
-          <ButtonGlow onClick={handleBackToCreate}>Try Again</ButtonGlow>
-        </div>
+      <div className="min-h-screen">
+        <HeroGeometric
+          badge="Oops!"
+          title1="Something went wrong"
+          title2="Try Again"
+        >
+          <div className="mt-12 w-full max-w-md mx-auto space-y-8 px-4 text-center">
+            <p className="text-white/90">{error}</p>
+            <ButtonGlow onClick={() => navigate("/create")}>
+              Return to Create
+            </ButtonGlow>
+          </div>
+        </HeroGeometric>
       </div>
     );
   }
 
-  if (!story) return null;
-
-  const currentSegment = story.segments[currentSegmentIndex];
+  const currentSegment = story.content.segments[currentSegmentIndex];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black">
@@ -262,26 +271,30 @@ const StoryPlayback = () => {
       <audio ref={ambienceRef} />
       
       <div className="absolute top-4 left-4 z-20">
-        <ButtonGlow onClick={handleBackToCreate} className="p-2">
+        <ButtonGlow onClick={() => navigate(-1)} className="p-2">
           <ArrowLeft className="w-5 h-5" />
         </ButtonGlow>
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-white/90 text-center mb-8">{story.title}</h1>
+        <h1 className="text-3xl font-bold text-white/90 text-center mb-8">
+          {story.title}
+        </h1>
         
         <AnimatePresence mode="wait">
-          <StorySegment
+          <StorySegmentComponent
             key={currentSegmentIndex}
             segment={currentSegment}
             isPlaying={isPlaying}
             currentIndex={currentSegmentIndex}
-            totalSegments={story.segments.length}
-            onPrevious={handlePrevious}
-            onNext={handleNext}
-            onPlayPause={togglePlayPause}
-            onSave={handleSaveStory}
-            onShare={handleShareStory}
+            totalSegments={story.content.segments.length}
+            onPrevious={() => setCurrentSegmentIndex(prev => Math.max(0, prev - 1))}
+            onNext={() => setCurrentSegmentIndex(prev => 
+              Math.min(story.content.segments.length - 1, prev + 1)
+            )}
+            onPlayPause={() => setIsPlaying(!isPlaying)}
+            onSave={() => {/* implement save logic */}}
+            onShare={() => {/* implement share logic */}}
           />
         </AnimatePresence>
       </div>
