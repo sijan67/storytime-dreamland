@@ -114,22 +114,15 @@ serve(async (req) => {
 
       try {
         // Generate image
+        console.log('Starting image generation...');
         const imageUrl = await generateImage(segment.image_description);
+        console.log('Image generation completed:', imageUrl);
 
         // Add delay between segments
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Increased delay
 
         // Generate narration using ElevenLabs
-        console.log(`Generating narration for segment ${index + 1}. Text length: ${segment.text.length} characters`);
-        console.log('ElevenLabs request payload:', JSON.stringify({
-          text: segment.text,
-          model_id: "eleven_monolingual_v1",
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.5,
-          }
-        }, null, 2));
-
+        console.log('Starting narration generation...');
         const narrationResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
           method: 'POST',
           headers: {
@@ -152,26 +145,48 @@ serve(async (req) => {
           throw new Error(`ElevenLabs API error: ${errorText}`);
         }
 
-        console.log(`Successfully generated narration for segment ${index + 1}`);
-        console.log('ElevenLabs response status:', narrationResponse.status);
-        console.log('ElevenLabs response headers:', JSON.stringify(Object.fromEntries(narrationResponse.headers.entries()), null, 2));
-
+        console.log('Narration generation completed, processing audio...');
         const narrationArrayBuffer = await narrationResponse.arrayBuffer();
-        const narrationBase64 = btoa(String.fromCharCode(...new Uint8Array(narrationArrayBuffer)));
-        console.log(`Generated narration audio. Base64 length: ${narrationBase64.length}`);
 
-        return {
-          ...segment,
-          imageUrl,
-          narrationAudio: narrationBase64,
-          ambienceAudio: '',
+        try {
+          const narrationBase64 = btoa(String.fromCharCode(...new Uint8Array(narrationArrayBuffer)));
+          console.log('Audio processing completed. Length:', narrationBase64.length);
+
+          const processedSegment = {
+            ...segment,
+            imageUrl,
+            narrationAudio: narrationBase64,
+            ambienceAudio: '',
+          };
+
+          console.log(`Successfully processed segment ${index + 1}`);
+          return processedSegment;
+
+        } catch (audioError) {
+          console.error('Error processing audio:', audioError);
+          throw new Error(`Audio processing error: ${audioError.message}`);
         }
+
       } catch (error) {
         console.error(`Error processing segment ${index + 1}:`, error);
         console.error('Full error details:', error);
-        throw error;
+        // Instead of throwing, return a partial segment
+        return {
+          ...segment,
+          imageUrl: '',
+          narrationAudio: '',
+          ambienceAudio: '',
+          error: error.message
+        };
       }
     }))
+
+    // Check for any failed segments
+    const failedSegments = processedSegments.filter(segment => 'error' in segment);
+    if (failedSegments.length > 0) {
+      console.error(`${failedSegments.length} segments failed processing`);
+      throw new Error('Some segments failed to process completely');
+    }
 
     const finalStory = {
       ...story,
