@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -8,84 +9,11 @@ import {
 } from "@/components/ui/tooltip";
 import { FileText, Edit, LogOut, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Star } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Story } from "@/types/database";
-
-interface StarShapeProps {
-  className?: string;
-  delay?: number;
-  size?: number;
-  rotate?: number;
-  color?: string;
-}
-
-const StarShape = ({
-  className,
-  delay = 0,
-  size = 4,
-  rotate = 0,
-  color = "text-yellow-300",
-}: StarShapeProps) => {
-  return (
-    <motion.div
-      initial={{
-        opacity: 0,
-        y: -50,
-        rotate: rotate - 15,
-        scale: 0.8,
-      }}
-      animate={{
-        opacity: 0.15,
-        y: 0,
-        rotate: rotate,
-        scale: 1,
-      }}
-      transition={{
-        duration: 2.4,
-        delay,
-        ease: [0.23, 0.86, 0.39, 0.96],
-        opacity: { duration: 1.2 },
-      }}
-      className={cn("absolute w-6 h-6", className)}
-    >
-      <motion.div
-        animate={{
-          y: [0, 15, 0],
-          scale: [0.9, 1, 0.9],
-        }}
-        transition={{
-          duration: 12,
-          repeat: Number.POSITIVE_INFINITY,
-          ease: "easeInOut",
-        }}
-        className="relative w-full h-full"
-      >
-        <Star 
-          className={cn("w-full h-full", color)} 
-          size={size} 
-          fill="currentColor"
-          style={{ transform: 'scale(0.4)' }}
-        />
-      </motion.div>
-    </motion.div>
-  );
-};
-
-interface StorySegment {
-  text: string;
-  imageUrl: string;
-  image_description: string;
-}
-
-interface StoryContent {
-  segments: StorySegment[];
-  title: string;
-  content: string;
-}
+import { StarShape } from "@/components/dashboard/StarShape";
+import { StoriesGrid } from "@/components/dashboard/StoriesGrid";
 
 const Dashboard = () => {
   const { signOut, user } = useAuth();
@@ -119,59 +47,6 @@ const Dashboard = () => {
       return data || [];
     }
   });
-
-  const getFirstSegment = (story: Story): { imageUrl?: string; text?: string } => {
-    try {
-      const content = JSON.parse(story.content) as StoryContent;
-      if (content.segments && content.segments.length > 0) {
-        return {
-          imageUrl: content.segments[0].imageUrl,
-          text: content.segments[0].text,
-        };
-      }
-    } catch (error) {
-      console.error('Error parsing story content:', error);
-    }
-    return {};
-  };
-
-  const renderStoryCard = (story: Story) => {
-    const firstSegment = getFirstSegment(story);
-
-    return (
-      <div
-        key={story.id}
-        className="p-6 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors cursor-pointer space-y-4"
-        onClick={() => navigate(`/story/${story.id}`)}
-      >
-        {firstSegment.imageUrl && (
-          <div className="aspect-video rounded-lg overflow-hidden">
-            <img
-              src={firstSegment.imageUrl}
-              alt={`Cover for ${story.title}`}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        )}
-        <div>
-          <h3 className="text-lg font-medium">{story.title}</h3>
-          {firstSegment.text && (
-            <p className="text-sm text-gray-400 mt-2 line-clamp-2">
-              {firstSegment.text}
-            </p>
-          )}
-          <p className="text-sm text-gray-400 mt-2">
-            {new Date(story.created_at).toLocaleDateString()}
-          </p>
-          {story.is_public && (
-            <span className="inline-block px-2 py-1 text-xs bg-blue-500/20 text-blue-300 rounded mt-2">
-              Public
-            </span>
-          )}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-[#1A1F2C] text-white relative overflow-hidden">
@@ -252,36 +127,20 @@ const Dashboard = () => {
         <div className="grow p-8">
           <TabsContent value="your-stories" className="m-0">
             <h2 className="text-2xl font-bold mb-6">Your Stories</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {myStories?.map((story) => renderStoryCard(story))}
-              {isLoadingMyStories && (
-                <div className="col-span-full text-center text-gray-400">
-                  Loading stories...
-                </div>
-              )}
-              {!isLoadingMyStories && !myStories?.length && (
-                <div className="col-span-full text-center text-gray-400">
-                  No stories found. Create your first story!
-                </div>
-              )}
-            </div>
+            <StoriesGrid
+              stories={myStories}
+              isLoading={isLoadingMyStories}
+              emptyMessage="No stories found. Create your first story!"
+            />
           </TabsContent>
           
           <TabsContent value="read-stories" className="m-0">
             <h2 className="text-2xl font-bold mb-6">Public Stories</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {publicStories?.map((story) => renderStoryCard(story))}
-              {isLoadingPublicStories && (
-                <div className="col-span-full text-center text-gray-400">
-                  Loading stories...
-                </div>
-              )}
-              {!isLoadingPublicStories && !publicStories?.length && (
-                <div className="col-span-full text-center text-gray-400">
-                  No public stories available yet.
-                </div>
-              )}
-            </div>
+            <StoriesGrid
+              stories={publicStories}
+              isLoading={isLoadingPublicStories}
+              emptyMessage="No public stories available yet."
+            />
           </TabsContent>
         </div>
       </Tabs>
