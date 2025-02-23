@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -13,13 +14,14 @@ import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Story } from "@/types/database";
 
-interface Story {
-  id: string;
-  title: string;
-  content: string;
-  created_at: string;
-  user_id: string;
+interface StarShapeProps {
+  className?: string;
+  delay?: number;
+  size?: number;
+  rotate?: number;
+  color?: string;
 }
 
 const StarShape = ({
@@ -28,13 +30,7 @@ const StarShape = ({
   size = 4,
   rotate = 0,
   color = "text-yellow-300",
-}: {
-  className?: string;
-  delay?: number;
-  size?: number;
-  rotate?: number;
-  color?: string;
-}) => {
+}: StarShapeProps) => {
   return (
     <motion.div
       initial={{
@@ -84,33 +80,32 @@ const Dashboard = () => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
 
-  const { data: myStories, isLoading: isLoadingMyStories } = useQuery<Story[]>({
+  const { data: myStories, isLoading: isLoadingMyStories } = useQuery({
     queryKey: ['my-stories', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('stories')
         .select('*')
         .eq('user_id', user?.id)
-        .order('created_at', { ascending: false })
-        .returns<Story[]>();
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data || [];
-    }
+      return (data || []) as Story[];
+    },
+    enabled: !!user
   });
 
-  const { data: publicStories, isLoading: isLoadingPublicStories } = useQuery<Story[]>({
+  const { data: publicStories, isLoading: isLoadingPublicStories } = useQuery({
     queryKey: ['public-stories'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('stories')
         .select('*')
         .eq('is_public', true)
-        .order('created_at', { ascending: false })
-        .returns<Story[]>();
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data || [];
+      return (data || []) as Story[];
     }
   });
 
@@ -204,6 +199,11 @@ const Dashboard = () => {
                   <p className="text-sm text-gray-400 mt-2">
                     {new Date(story.created_at).toLocaleDateString()}
                   </p>
+                  {story.is_public && (
+                    <span className="inline-block px-2 py-1 text-xs bg-blue-500/20 text-blue-300 rounded mt-2">
+                      Public
+                    </span>
+                  )}
                 </div>
               ))}
               {isLoadingMyStories && (

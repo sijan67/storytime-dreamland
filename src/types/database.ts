@@ -9,6 +9,7 @@ export interface Database {
           id: string
           title: string
           user_id: string
+          is_public: boolean
         }
         Insert: {
           content: string
@@ -16,6 +17,7 @@ export interface Database {
           id?: string
           title: string
           user_id: string
+          is_public?: boolean
         }
         Update: {
           content?: string
@@ -23,6 +25,7 @@ export interface Database {
           id?: string
           title?: string
           user_id?: string
+          is_public?: boolean
         }
       }
       voice_samples: {
@@ -63,3 +66,6 @@ export interface Database {
     }
   }
 }
+
+export type Story = Database['public']['Tables']['stories']['Row']
+export type VoiceSample = Database['public']['Tables']['voice_samples']['Row']
