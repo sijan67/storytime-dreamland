@@ -12,6 +12,7 @@ import Choice from "./pages/Choice";
 import Create from "./pages/Create";
 import CreateLoading from "./pages/CreateLoading";
 import Story from "./pages/Story";
+import StoryPlayback from "./pages/StoryPlayback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <CreateLoading />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/story/playback"
+              element={
+                <ProtectedRoute>
+                  <StoryPlayback />
                 </ProtectedRoute>
               }
             />

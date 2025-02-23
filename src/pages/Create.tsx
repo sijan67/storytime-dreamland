@@ -1,4 +1,3 @@
-
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
 import { ArrowLeft, Play, Upload, Pause } from "lucide-react";
@@ -120,7 +119,13 @@ const Create = () => {
       });
       return;
     }
-    navigate("/create/loading");
+    
+    navigate("/story/playback", {
+      state: {
+        context,
+        voiceId: selectedVoice
+      }
+    });
   };
 
   return (
