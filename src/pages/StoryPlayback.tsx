@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, Play, Pause, Save, Share2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import CreateLoading from './CreateLoading';
-import { useAuth } from "@/integrations/auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface StorySegment {
   text: string;
