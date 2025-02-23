@@ -2,7 +2,7 @@
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
 import { motion } from "framer-motion";
-import { Volume2, Pause, Play, RotateCcw } from "lucide-react";
+import { Volume2, Pause, Play, RotateCcw, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -31,6 +31,13 @@ const Story = () => {
 
   return (
     <div className="min-h-screen">
+      <div className="absolute top-4 left-4 z-20">
+        <ButtonGlow onClick={() => navigate("/dashboard")} size="sm">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Dashboard
+        </ButtonGlow>
+      </div>
+
       <HeroGeometric
         badge="Your Story"
         title1={story.title}

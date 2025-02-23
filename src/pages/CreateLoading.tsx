@@ -1,11 +1,22 @@
 
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
-import { Wand2 } from "lucide-react";
+import { ButtonGlow } from "@/components/ui/button-glow";
+import { Wand2, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const CreateLoading = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen">
+      <div className="absolute top-4 left-4 z-20">
+        <ButtonGlow onClick={() => navigate("/dashboard")} size="sm">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Dashboard
+        </ButtonGlow>
+      </div>
+
       <HeroGeometric
         badge="Creating Magic"
         title1="Crafting Your"

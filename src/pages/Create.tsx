@@ -1,13 +1,7 @@
-
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ButtonGlow } from "@/components/ui/button-glow";
+import { ArrowLeft } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -25,6 +19,13 @@ const Create = () => {
 
   return (
     <div className="min-h-screen">
+      <div className="absolute top-4 left-4 z-20">
+        <ButtonGlow onClick={() => navigate("/dashboard")} size="sm">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Dashboard
+        </ButtonGlow>
+      </div>
+      
       <HeroGeometric
         badge="Story Creation"
         title1="Create Your"
