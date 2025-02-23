@@ -46,6 +46,12 @@ const Create = () => {
         return;
       }
 
+      // Stop any currently playing audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
       setIsPlaying(true);
       setCurrentPlayingId(voiceId);
 
@@ -61,7 +67,7 @@ const Create = () => {
         setCurrentPlayingId(null);
       };
 
-      audio.play();
+      await audio.play();
     } catch (error) {
       toast({
         title: "Error",
