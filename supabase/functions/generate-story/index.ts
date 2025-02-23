@@ -47,7 +47,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: `Create a story about: ${context}` }
@@ -69,15 +69,17 @@ serve(async (req) => {
     const processedSegments = await Promise.all(story.segments.map(async (segment, index) => {
       console.log(`Processing segment ${index + 1}/${story.segments.length}`)
       
-      // Generate image using FAL.ai
-      const imageResponse = await fetch('https://110602490-studio-flux-pro.gateway.alpha.fal.ai/', {
+      // Generate image using FAL.ai REST API
+      const imageResponse = await fetch('https://api.fal.ai/v1/models/fal-ai/flux-pro/v1.1-ultra/inference', {
         method: 'POST',
         headers: {
-          'Authorization': `Key ${Deno.env.get('FAL_AI_KEY')}`,
+          'Authorization': `Bearer ${Deno.env.get('FAL_AI_KEY')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt: segment.image_description,
+          input: {
+            prompt: segment.image_description
+          }
         }),
       })
 
@@ -118,12 +120,11 @@ serve(async (req) => {
       console.log(`Generated narration for segment ${index + 1}`)
 
       // Generate ambient sound using mock data for now
-      // In a real implementation, you would generate this using a sound API
       const ambienceBase64 = ''  // Empty for now to avoid errors
 
       return {
         ...segment,
-        imageUrl: imageData.image,
+        imageUrl: imageData.images[0].url, // FAL.ai returns the image URL directly
         narrationAudio: narrationBase64,
         ambienceAudio: ambienceBase64,
       }
