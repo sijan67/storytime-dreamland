@@ -69,71 +69,83 @@ serve(async (req) => {
     const processedSegments = await Promise.all(story.segments.map(async (segment, index) => {
       console.log(`Processing segment ${index + 1}/${story.segments.length}`)
       
-      // Generate image using FAL.ai REST API with the correct endpoint
-      const imageResponse = await fetch('https://api.fal.ai/v1/models/stable-diffusion-xl-v1-0/inferences', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${Deno.env.get('FAL_AI_KEY')}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: segment.image_description,
-          image_size: "768x768",
-          num_images: 1,
-          scheduler: "UniPC",
-          num_inference_steps: 25
-        }),
-      })
+      // Generate image using FAL.ai REST API with updated endpoint
+      const falApiKey = Deno.env.get('FAL_AI_KEY')
+      console.log('Calling FAL.ai API...')
+      
+      try {
+        const imageResponse = await fetch('https://api.fal.ai/v1/models/stable-diffusion-xl-v1-0/inferences', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Key ${falApiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: segment.image_description,
+            height: 768,
+            width: 768,
+            steps: 25,
+            seed: Math.floor(Math.random() * 1000000),
+            scheduler: "DDIMScheduler",
+            num_outputs: 1,
+            safety_check: false,
+            guidance_scale: 7.5
+          }),
+        })
 
-      if (!imageResponse.ok) {
-        const error = await imageResponse.text()
-        console.error('FAL.ai API error:', error)
-        throw new Error(`FAL.ai API error: ${error}`)
-      }
+        if (!imageResponse.ok) {
+          const errorText = await imageResponse.text()
+          console.error('FAL.ai API error response:', errorText)
+          throw new Error(`FAL.ai API error: ${errorText}`)
+        }
 
-      const imageData = await imageResponse.json()
-      console.log(`Generated image for segment ${index + 1}:`, imageData)
+        const imageData = await imageResponse.json()
+        console.log('FAL.ai response:', imageData)
 
-      if (!imageData.images || !imageData.images[0]) {
-        throw new Error('No image was generated')
-      }
+        if (!imageData.images || !imageData.images[0]) {
+          throw new Error('No image was generated')
+        }
 
-      // Generate narration using ElevenLabs
-      const narrationResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-        method: 'POST',
-        headers: {
-          'xi-api-key': Deno.env.get('ELEVEN_LABS_API_KEY') || '',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: segment.text,
-          model_id: "eleven_monolingual_v1",
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.5,
-          }
-        }),
-      })
+        // Generate narration using ElevenLabs
+        const narrationResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+          method: 'POST',
+          headers: {
+            'xi-api-key': Deno.env.get('ELEVEN_LABS_API_KEY') || '',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: segment.text,
+            model_id: "eleven_monolingual_v1",
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.5,
+            }
+          }),
+        })
 
-      if (!narrationResponse.ok) {
-        const error = await narrationResponse.text()
-        console.error('ElevenLabs API error:', error)
-        throw new Error(`ElevenLabs API error: ${error}`)
-      }
+        if (!narrationResponse.ok) {
+          const error = await narrationResponse.text()
+          console.error('ElevenLabs API error:', error)
+          throw new Error(`ElevenLabs API error: ${error}`)
+        }
 
-      const narrationArrayBuffer = await narrationResponse.arrayBuffer()
-      const narrationBase64 = btoa(String.fromCharCode(...new Uint8Array(narrationArrayBuffer)))
-      console.log(`Generated narration for segment ${index + 1}`)
+        const narrationArrayBuffer = await narrationResponse.arrayBuffer()
+        const narrationBase64 = btoa(String.fromCharCode(...new Uint8Array(narrationArrayBuffer)))
+        console.log(`Generated narration for segment ${index + 1}`)
 
-      // Generate ambient sound using mock data for now
-      const ambienceBase64 = ''  // Empty for now to avoid errors
+        // Generate ambient sound using mock data for now
+        const ambienceBase64 = ''  // Empty for now to avoid errors
 
-      return {
-        ...segment,
-        imageUrl: imageData.images[0].url,
-        narrationAudio: narrationBase64,
-        ambienceAudio: ambienceBase64,
+        return {
+          ...segment,
+          imageUrl: imageData.images[0].url,
+          narrationAudio: narrationBase64,
+          ambienceAudio: ambienceBase64,
+        }
+      } catch (error) {
+        console.error(`Error processing segment ${index + 1}:`, error)
+        throw error
       }
     }))
 
