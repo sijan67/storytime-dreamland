@@ -7,8 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const SYSTEM_PROMPT = `Generate a bedtime story in JSON format, split into 15-second segments. Each segment must include:
-1. "text": A concise story paragraph (1-2 sentences).
+const SYSTEM_PROMPT = `Generate a bedtime story in JSON format, split into 4 segments (beginning, development, climax, and resolution). Each segment must include:
+1. "text": A rich story paragraph (3-4 sentences).
 2. "image_description": A detailed visual description for image generation.
 3. "audio_ambience": Suggested background sound (e.g., "rain", "forest").
 4. "interaction_point": Boolean flag if this segment allows chatting with a character.
