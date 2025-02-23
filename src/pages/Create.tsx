@@ -120,7 +120,7 @@ const Create = () => {
       });
       return;
     }
-
+  
     if (!context.trim()) {
       toast({
         title: "Error",
@@ -129,9 +129,12 @@ const Create = () => {
       });
       return;
     }
-
+  
+    // Navigate to loading page first
+    navigate("/create/loading");
+  
     try {
-      // First, generate the story
+      // Generate the story
       console.log('Generating story...');
       const { data: generatedStory, error: generateError } = await supabase.functions.invoke('generate-story', {
         body: { 
@@ -139,16 +142,16 @@ const Create = () => {
           voiceId: selectedVoice
         }
       });
-
+  
       if (generateError) throw generateError;
       
       console.log('Story generated:', generatedStory);
-
+  
       if (!generatedStory) {
         throw new Error('No story data received');
       }
-
-      // Then save it to the database
+  
+      // Save it to the database
       console.log('Saving story to database...');
       const { data: savedStory, error: saveError } = await supabase
         .from('stories')
@@ -159,14 +162,14 @@ const Create = () => {
         })
         .select()
         .single();
-
+  
       if (saveError) throw saveError;
-
+  
       console.log('Story saved:', savedStory);
-
-      // Only navigate after everything is done
+  
+      // Navigate to the story page
       navigate(`/story/${savedStory.id}`);
-
+  
     } catch (error: any) {
       console.error('Error in story generation process:', error);
       toast({
