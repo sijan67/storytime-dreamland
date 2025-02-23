@@ -4,7 +4,7 @@ import { ButtonGlow } from "@/components/ui/button-glow";
 import { motion } from "framer-motion";
 import { Volume2, Pause, Play, RotateCw, ArrowLeft, Share2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,6 +22,7 @@ interface StoryContent {
 
 const Story = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
   const { id } = useParams();
@@ -77,7 +78,16 @@ const Story = () => {
   }, [id, toast]);
 
   const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
+    if (!story) return;
+    navigate("/story/playback", { 
+      state: { 
+        story: {
+          id,
+          title: story.title,
+          content: story.content,
+        }
+      }
+    });
   };
 
   const handleRestart = () => {
@@ -109,7 +119,7 @@ const Story = () => {
 
       toast({
         title: "Success",
-        description: "Story shared successfully!",
+        description: "Story shared successfully! It's now visible in the Public Stories tab.",
       });
 
       navigate("/dashboard");
@@ -174,17 +184,8 @@ const Story = () => {
               onClick={handlePlayPause}
               className="flex items-center gap-2"
             >
-              {isPlaying ? (
-                <>
-                  <Pause className="w-5 h-5" />
-                  Pause Story
-                </>
-              ) : (
-                <>
-                  <Play className="w-5 h-5" />
-                  Play Story
-                </>
-              )}
+              <Play className="w-5 h-5" />
+              Play Story
             </ButtonGlow>
 
             <ButtonGlow
