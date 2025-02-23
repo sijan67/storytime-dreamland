@@ -1,12 +1,18 @@
+
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
 import { motion } from "framer-motion";
-import { Volume2, Pause, Play, RotateCcw, ArrowLeft } from "lucide-react";
+import { Volume2, Pause, Play, RotateCcw, ArrowLeft, Save, Share2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Story = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [isPlaying, setIsPlaying] = useState(false);
   
   const story = {
@@ -25,6 +31,81 @@ const Story = () => {
 
   const handleNewStory = () => {
     navigate("/create");
+  };
+
+  const handleSaveStory = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to save stories",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('stories')
+        .insert({
+          title: story.title,
+          content: JSON.stringify(story),
+          user_id: user.id,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Story saved successfully!",
+      });
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.error('Error saving story:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save story",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShareStory = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to share stories",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('stories')
+        .insert({
+          title: story.title,
+          content: JSON.stringify(story),
+          user_id: user.id,
+          is_public: true,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Story shared successfully!",
+      });
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.error('Error sharing story:', error);
+      toast({
+        title: "Error",
+        description: "Failed to share story",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -55,7 +136,7 @@ const Story = () => {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-4">
             <ButtonGlow 
               onClick={handlePlayPause}
               className="flex items-center gap-2"
@@ -87,6 +168,22 @@ const Story = () => {
             >
               <Volume2 className="w-5 h-5" />
               New Story
+            </ButtonGlow>
+
+            <ButtonGlow
+              onClick={handleSaveStory}
+              className="flex items-center gap-2"
+            >
+              <Save className="w-5 h-5" />
+              Save Story
+            </ButtonGlow>
+
+            <ButtonGlow
+              onClick={handleShareStory}
+              className="flex items-center gap-2"
+            >
+              <Share2 className="w-5 h-5" />
+              Share Story
             </ButtonGlow>
           </div>
         </motion.div>
