@@ -1,3 +1,4 @@
+
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
 import { ArrowLeft, Play, Upload, Pause, Save, Share2 } from "lucide-react";
@@ -22,7 +23,6 @@ const Create = () => {
   const [currentPlayingId, setCurrentPlayingId] = useState<string | null>(null);
   const [context, setContext] = useState("");
   const [isUploading, setIsUploading] = useState(false);
-  const [generatedStory, setGeneratedStory] = useState<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const { data: voices, isLoading: isLoadingVoices } = useQuery({
@@ -111,7 +111,7 @@ const Create = () => {
     setIsUploading(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedVoice) {
       toast({
         title: "Error",
@@ -129,73 +129,45 @@ const Create = () => {
       });
       return;
     }
-    
-    navigate("/story/playback", {
-      state: {
-        context: context.trim(),
-        voiceId: selectedVoice
-      }
-    });
-  };
-
-  const handleSaveStory = async () => {
-    if (!generatedStory || !user) return;
 
     try {
-      const { error } = await supabase
-        .from('stories')
-        .insert({
-          title: generatedStory.title,
-          content: JSON.stringify(generatedStory),
-          user_id: user.id,
-        });
+      // Navigate to loading screen first
+      navigate("/create/loading");
+
+      const { data, error } = await supabase.functions.invoke('generate-story', {
+        body: { 
+          context: context.trim(),
+          voiceId: selectedVoice
+        }
+      });
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Story saved successfully!",
-      });
-
-      navigate("/dashboard");
-    } catch (error) {
-      console.error('Error saving story:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save story",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleShareStory = async () => {
-    if (!generatedStory || !user) return;
-
-    try {
-      const { error } = await supabase
+      // Save the generated story to the database
+      const { data: savedStory, error: saveError } = await supabase
         .from('stories')
         .insert({
-          title: generatedStory.title,
-          content: JSON.stringify(generatedStory),
-          user_id: user.id,
-          is_public: true,
-        });
+          title: data.title,
+          content: JSON.stringify(data),
+          user_id: user?.id
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (saveError) throw saveError;
 
-      toast({
-        title: "Success",
-        description: "Story shared successfully!",
-      });
+      // Navigate to the story view with the saved story ID
+      navigate(`/story/${savedStory.id}`);
 
-      navigate("/dashboard");
-    } catch (error) {
-      console.error('Error sharing story:', error);
+    } catch (error: any) {
+      console.error('Error generating story:', error);
       toast({
         title: "Error",
-        description: "Failed to share story",
+        description: error.message || "Failed to generate story",
         variant: "destructive",
       });
+      // Navigate back to create page on error
+      navigate("/create");
     }
   };
 
@@ -289,19 +261,6 @@ const Create = () => {
           >
             Generate Story
           </ButtonGlow>
-
-          {generatedStory && (
-            <div className="flex gap-4 mt-6">
-              <ButtonGlow onClick={handleSaveStory} className="flex-1">
-                <Save className="w-4 h-4 mr-2" />
-                Save Story
-              </ButtonGlow>
-              <ButtonGlow onClick={handleShareStory} className="flex-1">
-                <Share2 className="w-4 h-4 mr-2" />
-                Share Story
-              </ButtonGlow>
-            </div>
-          )}
         </motion.div>
       </HeroGeometric>
     </div>
