@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 const StarShape = ({
   className,
   delay = 0,
-  size = 16,
+  size = 8,
   rotate = 0,
   color = "text-yellow-300",
 }: {
@@ -34,7 +34,7 @@ const StarShape = ({
         rotate: rotate - 15,
       }}
       animate={{
-        opacity: 0.3,
+        opacity: 0.15,
         y: 0,
         rotate: rotate,
       }}
@@ -79,14 +79,18 @@ const Dashboard = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/30 via-transparent to-purple-900/30 blur-3xl" />
       
       <div className="absolute inset-0">
-        <StarShape delay={0.2} size={20} rotate={12} color="text-yellow-200" className="left-[10%] top-[15%]" />
-        <StarShape delay={0.3} size={16} rotate={-15} color="text-yellow-100" className="right-[15%] top-[25%]" />
-        <StarShape delay={0.4} size={18} rotate={8} color="text-yellow-300" className="left-[20%] bottom-[20%]" />
-        <StarShape delay={0.5} size={14} rotate={20} color="text-yellow-200" className="right-[25%] top-[40%]" />
-        <StarShape delay={0.6} size={16} rotate={-12} color="text-yellow-100" className="left-[30%] top-[60%]" />
-        <StarShape delay={0.7} size={18} rotate={15} color="text-yellow-200" className="right-[35%] bottom-[30%]" />
-        <StarShape delay={0.8} size={14} rotate={-20} color="text-yellow-300" className="left-[40%] top-[35%]" />
-        <StarShape delay={0.9} size={16} rotate={25} color="text-yellow-100" className="right-[40%] top-[55%]" />
+        <StarShape delay={0.2} size={10} rotate={12} color="text-yellow-200" className="left-[10%] top-[15%]" />
+        <StarShape delay={0.3} size={8} rotate={-15} color="text-yellow-100" className="right-[15%] top-[25%]" />
+        <StarShape delay={0.4} size={9} rotate={8} color="text-yellow-300" className="left-[20%] bottom-[20%]" />
+        <StarShape delay={0.5} size={7} rotate={20} color="text-yellow-200" className="right-[25%] top-[40%]" />
+        <StarShape delay={0.6} size={8} rotate={-12} color="text-yellow-100" className="left-[30%] top-[60%]" />
+        <StarShape delay={0.7} size={9} rotate={15} color="text-yellow-200" className="right-[35%] bottom-[30%]" />
+        <StarShape delay={0.8} size={7} rotate={-20} color="text-yellow-300" className="left-[40%] top-[35%]" />
+        <StarShape delay={0.9} size={8} rotate={25} color="text-yellow-100" className="right-[40%] top-[55%]" />
+        <StarShape delay={1.0} size={6} rotate={30} color="text-yellow-200" className="left-[45%] bottom-[40%]" />
+        <StarShape delay={1.1} size={7} rotate={-8} color="text-yellow-100" className="right-[48%] top-[20%]" />
+        <StarShape delay={1.2} size={8} rotate={22} color="text-yellow-300" className="left-[52%] top-[45%]" />
+        <StarShape delay={1.3} size={6} rotate={-25} color="text-yellow-200" className="right-[55%] bottom-[25%]" />
       </div>
 
       <div className="absolute inset-0 bg-gradient-to-t from-[#1A1F2C] via-transparent to-[#1A1F2C]/80 pointer-events-none" />
