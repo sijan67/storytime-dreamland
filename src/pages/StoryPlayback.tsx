@@ -2,10 +2,11 @@ import { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ButtonGlow } from "@/components/ui/button-glow";
-import { ArrowLeft, ArrowRight, Play, Pause } from "lucide-react";
+import { ArrowLeft, ArrowRight, Play, Pause, Save, Share2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import CreateLoading from './CreateLoading';
+import { useAuth } from "@/integrations/auth";
 
 interface StorySegment {
   text: string;
@@ -28,6 +29,7 @@ const StoryPlayback = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const [story, setStory] = useState<Story | null>(null);
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
@@ -39,11 +41,88 @@ const StoryPlayback = () => {
   const ambienceRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Generate the story when component mounts
+  const handleSaveStory = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to save stories",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!story) return;
+
+    try {
+      const { error } = await supabase
+        .from('stories')
+        .insert({
+          title: story.title,
+          content: JSON.stringify(story),
+          user_id: user.id,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Story saved successfully!",
+      });
+
+      navigate("/dashboard");
+    } catch (err) {
+      console.error('Error saving story:', err);
+      toast({
+        title: "Error",
+        description: "Failed to save story",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShareStory = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to share stories",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!story) return;
+
+    try {
+      const { error } = await supabase
+        .from('stories')
+        .insert({
+          title: story.title,
+          content: JSON.stringify(story),
+          user_id: user.id,
+          is_public: true,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Story shared successfully!",
+      });
+
+      navigate("/dashboard");
+    } catch (err) {
+      console.error('Error sharing story:', err);
+      toast({
+        title: "Error",
+        description: "Failed to share story",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     const generateStory = async () => {
       try {
-        // Check if we have the required state
         if (!location.state || !location.state.context || !location.state.voiceId) {
           throw new Error('Missing required parameters. Please return to the create page.');
         }
@@ -83,14 +162,12 @@ const StoryPlayback = () => {
     generateStory();
   }, [location.state, toast]);
 
-  // Handle segment playback
   useEffect(() => {
     if (!story || !isPlaying) return;
 
     const currentSegment = story.segments[currentSegmentIndex];
     if (!currentSegment) return;
 
-    // Play narration
     if (narrationRef.current) {
       narrationRef.current.src = `data:audio/mp3;base64,${currentSegment.narrationAudio}`;
       narrationRef.current.play().catch(err => {
@@ -98,7 +175,6 @@ const StoryPlayback = () => {
       });
     }
 
-    // Play ambience
     if (ambienceRef.current) {
       ambienceRef.current.src = `data:audio/mp3;base64,${currentSegment.ambienceAudio}`;
       ambienceRef.current.play().catch(err => {
@@ -107,7 +183,6 @@ const StoryPlayback = () => {
       ambienceRef.current.loop = true;
     }
 
-    // Set timer for next segment if not at an interaction point
     if (!currentSegment.interaction_point) {
       timerRef.current = setTimeout(() => {
         if (currentSegmentIndex < story.segments.length - 1) {
@@ -217,7 +292,7 @@ const StoryPlayback = () => {
               {currentSegment.text}
             </p>
 
-            <div className="flex justify-center items-center gap-4">
+            <div className="flex justify-center items-center gap-4 mb-6">
               <ButtonGlow
                 onClick={handlePrevious}
                 disabled={currentSegmentIndex === 0}
@@ -240,10 +315,30 @@ const StoryPlayback = () => {
             </div>
 
             {currentSegment.interaction_point && (
-              <div className="mt-6 p-4 bg-white/5 rounded-lg">
+              <div className="mt-6 p-4 bg-white/5 rounded-lg mb-6">
                 <p className="text-white/90 text-center">
                   This is an interaction point! You can chat with the characters here.
                 </p>
+              </div>
+            )}
+
+            {currentSegmentIndex === story.segments.length - 1 && (
+              <div className="flex justify-center items-center gap-4 mt-6">
+                <ButtonGlow
+                  onClick={handleSaveStory}
+                  className="flex items-center gap-2"
+                >
+                  <Save className="w-5 h-5" />
+                  Save Story
+                </ButtonGlow>
+
+                <ButtonGlow
+                  onClick={handleShareStory}
+                  className="flex items-center gap-2"
+                >
+                  <Share2 className="w-5 h-5" />
+                  Share Story
+                </ButtonGlow>
               </div>
             )}
 
