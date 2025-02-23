@@ -77,15 +77,16 @@ const Story = () => {
   }, [id, toast]);
 
   const handlePlayPause = () => {
-    if (!story) return;
+    if (!story || !id) return;
+    
+    const storyData = {
+      id,
+      title: story.title,
+      content: story.content,
+    };
+    
     navigate(`/story/${id}/playback`, { 
-      state: { 
-        story: {
-          id,
-          title: story.title,
-          content: story.content,
-        }
-      }
+      state: { story: storyData }
     });
   };
 

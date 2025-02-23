@@ -60,7 +60,7 @@ const App = () => (
               }
             />
             <Route
-              path="/story/playback"
+              path="/story/:id/playback"
               element={
                 <ProtectedRoute>
                   <StoryPlayback />
