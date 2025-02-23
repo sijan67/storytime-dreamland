@@ -69,28 +69,24 @@ serve(async (req) => {
     const processedSegments = await Promise.all(story.segments.map(async (segment, index) => {
       console.log(`Processing segment ${index + 1}/${story.segments.length}`)
       
-      // Generate image using FAL.ai REST API with updated endpoint
-      const falApiKey = Deno.env.get('FAL_AI_KEY')
-      console.log('Calling FAL.ai API...')
-      
+      // Generate image using FAL.ai Flux Pro REST API
       try {
-        const imageResponse = await fetch('https://api.fal.ai/v1/models/stable-diffusion-xl-v1-0/inferences', {
+        const imageResponse = await fetch('https://api.fal.ai/v1/models/fal-ai/flux-pro/v1.1-ultra/inference', {
           method: 'POST',
           headers: {
-            'Authorization': `Key ${falApiKey}`,
+            'Authorization': `Key ${Deno.env.get('FAL_AI_KEY')}`,
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
           body: JSON.stringify({
-            prompt: segment.image_description,
-            height: 768,
-            width: 768,
-            steps: 25,
-            seed: Math.floor(Math.random() * 1000000),
-            scheduler: "DDIMScheduler",
-            num_outputs: 1,
-            safety_check: false,
-            guidance_scale: 7.5
+            input: {
+              prompt: segment.image_description,
+              image_size: "768x768",
+              seed: Math.floor(Math.random() * 1000000),
+              num_inference_steps: 25,
+              guidance_scale: 7.5,
+              negative_prompt: "ugly, blurry, low quality, distorted, disfigured"
+            }
           }),
         })
 
@@ -103,7 +99,7 @@ serve(async (req) => {
         const imageData = await imageResponse.json()
         console.log('FAL.ai response:', imageData)
 
-        if (!imageData.images || !imageData.images[0]) {
+        if (!imageData.output || !imageData.output.image) {
           throw new Error('No image was generated')
         }
 
@@ -139,7 +135,7 @@ serve(async (req) => {
 
         return {
           ...segment,
-          imageUrl: imageData.images[0].url,
+          imageUrl: imageData.output.image,
           narrationAudio: narrationBase64,
           ambienceAudio: ambienceBase64,
         }
