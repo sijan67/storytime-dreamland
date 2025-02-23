@@ -3,23 +3,14 @@ import { ButtonGlow } from "@/components/ui/button-glow";
 import { TextGradient } from "@/components/ui/text-gradient";
 import { useNavigate, useLocation } from "react-router-dom";
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AuthModal } from "@/components/AuthModal";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Home = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { user, signOut } = useAuth();
-
-  useEffect(() => {
-    // Only redirect if we're on the home page and there's a user
-    if (user && location.pathname === '/home') {
-      const from = location.state?.from?.pathname || '/dashboard';
-      navigate(from, { replace: true });
-    }
-  }, [user, navigate, location]);
 
   const handleGetStarted = () => {
     if (user) {
