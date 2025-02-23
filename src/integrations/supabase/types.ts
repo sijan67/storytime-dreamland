@@ -33,6 +33,30 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_samples: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          sample_path: string
+          voice_id: string
+          voice_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          sample_path: string
+          voice_id: string
+          voice_name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          sample_path?: string
+          voice_id?: string
+          voice_name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
