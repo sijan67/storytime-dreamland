@@ -2,12 +2,13 @@
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
 import { motion } from "framer-motion";
-import { Volume2, Pause, Play, RotateCw, ArrowLeft, Share2 } from "lucide-react";
+import { Volume2, Play, RotateCw, ArrowLeft, Share2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Loading } from "@/components/ui/loading";
 
 interface StorySegment {
   text: string;
@@ -22,11 +23,9 @@ interface StoryContent {
 
 const Story = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
   const { id } = useParams();
-  const [isPlaying, setIsPlaying] = useState(false);
   const [story, setStory] = useState<{
     title: string;
     content: StoryContent;
@@ -79,7 +78,7 @@ const Story = () => {
 
   const handlePlayPause = () => {
     if (!story) return;
-    navigate("/story/playback", { 
+    navigate(`/story/${id}/playback`, { 
       state: { 
         story: {
           id,
@@ -91,7 +90,6 @@ const Story = () => {
   };
 
   const handleRestart = () => {
-    setIsPlaying(false);
     // Will implement actual restart logic later
   };
 
@@ -134,11 +132,33 @@ const Story = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <Loading />;
   }
 
   if (!story) {
-    return <div>Story not found</div>;
+    return (
+      <div className="min-h-screen">
+        <HeroGeometric
+          badge="Oops!"
+          title1="Story Not Found"
+          title2="Try Again"
+        >
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mt-12 w-full max-w-md mx-auto space-y-8 px-4 text-center"
+          >
+            <p className="text-white/90">
+              We couldn't find the story you're looking for.
+            </p>
+            <ButtonGlow onClick={() => navigate("/dashboard")}>
+              Return to Dashboard
+            </ButtonGlow>
+          </motion.div>
+        </HeroGeometric>
+      </div>
+    );
   }
 
   return (
