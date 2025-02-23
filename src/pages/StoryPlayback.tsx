@@ -1,14 +1,15 @@
 import { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { ButtonGlow } from "@/components/ui/button-glow";
-import { ArrowLeft, ArrowRight, Play, Pause, Save, Share2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import CreateLoading from './CreateLoading';
 import { useAuth } from "@/contexts/AuthContext";
+import { StorySegment } from "@/components/story/StorySegment";
 
-interface StorySegment {
+interface StorySegmentType {
   text: string;
   image_description: string;
   audio_ambience: string;
@@ -20,7 +21,7 @@ interface StorySegment {
 
 interface Story {
   title: string;
-  segments: StorySegment[];
+  segments: StorySegmentType[];
 }
 
 const SEGMENT_DURATION = 15000; // 15 seconds in milliseconds
@@ -236,9 +237,7 @@ const StoryPlayback = () => {
   };
 
   if (isLoading) {
-    return (
-      <CreateLoading />
-    );
+    return <CreateLoading />;
   }
 
   if (error) {
@@ -272,82 +271,18 @@ const StoryPlayback = () => {
         <h1 className="text-3xl font-bold text-white/90 text-center mb-8">{story.title}</h1>
         
         <AnimatePresence mode="wait">
-          <motion.div
+          <StorySegment
             key={currentSegmentIndex}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}
-            className="max-w-4xl mx-auto"
-          >
-            <div className="aspect-video rounded-lg overflow-hidden mb-6">
-              <img 
-                src={currentSegment.imageUrl} 
-                alt={currentSegment.image_description}
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            <p className="text-white/90 text-lg text-center mb-8">
-              {currentSegment.text}
-            </p>
-
-            <div className="flex justify-center items-center gap-4 mb-6">
-              <ButtonGlow
-                onClick={handlePrevious}
-                disabled={currentSegmentIndex === 0}
-                className="p-2"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </ButtonGlow>
-
-              <ButtonGlow onClick={togglePlayPause} className="p-2">
-                {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-              </ButtonGlow>
-
-              <ButtonGlow
-                onClick={handleNext}
-                disabled={currentSegmentIndex === story.segments.length - 1}
-                className="p-2"
-              >
-                <ArrowRight className="w-5 h-5" />
-              </ButtonGlow>
-            </div>
-
-            {currentSegment.interaction_point && (
-              <div className="mt-6 p-4 bg-white/5 rounded-lg mb-6">
-                <p className="text-white/90 text-center">
-                  This is an interaction point! You can chat with the characters here.
-                </p>
-              </div>
-            )}
-
-            {currentSegmentIndex === story.segments.length - 1 && (
-              <div className="flex justify-center items-center gap-4 mt-6">
-                <ButtonGlow
-                  onClick={handleSaveStory}
-                  className="flex items-center gap-2"
-                >
-                  <Save className="w-5 h-5" />
-                  Save Story
-                </ButtonGlow>
-
-                <ButtonGlow
-                  onClick={handleShareStory}
-                  className="flex items-center gap-2"
-                >
-                  <Share2 className="w-5 h-5" />
-                  Share Story
-                </ButtonGlow>
-              </div>
-            )}
-
-            <div className="mt-6 flex justify-center">
-              <p className="text-white/60">
-                Segment {currentSegmentIndex + 1} of {story.segments.length}
-              </p>
-            </div>
-          </motion.div>
+            segment={currentSegment}
+            isPlaying={isPlaying}
+            currentIndex={currentSegmentIndex}
+            totalSegments={story.segments.length}
+            onPrevious={handlePrevious}
+            onNext={handleNext}
+            onPlayPause={togglePlayPause}
+            onSave={handleSaveStory}
+            onShare={handleShareStory}
+          />
         </AnimatePresence>
       </div>
     </div>
