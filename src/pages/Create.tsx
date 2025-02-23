@@ -23,22 +23,31 @@ const Create = () => {
   const [isUploading, setIsUploading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Fetch voice samples from the database
-  const { data: voices, isLoading: isLoadingVoices } = useQuery({
+  // Fetch voice samples from the database with better error handling
+  const { data: voices, isLoading: isLoadingVoices, error: voicesError } = useQuery({
     queryKey: ['voice-samples'],
     queryFn: async () => {
+      console.log('Fetching voice samples...');
       const { data, error } = await supabase
         .from('voice_samples')
         .select('*')
         .order('voice_name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching voices:', error);
+        throw error;
+      }
+      
+      console.log('Fetched voices:', data);
       return data as VoiceSample[];
     },
+    retry: 1, // Only retry once if there's an error
   });
 
   const playVoiceSample = async (voiceId: string, samplePath: string) => {
     try {
+      console.log('Playing voice sample:', voiceId, samplePath);
+      
       if (currentPlayingId === voiceId && isPlaying) {
         audioRef.current?.pause();
         setIsPlaying(false);
@@ -59,6 +68,8 @@ const Create = () => {
         .from('voice-samples')
         .getPublicUrl(samplePath);
 
+      console.log('Voice sample URL:', publicUrl.publicUrl);
+
       const audio = new Audio(publicUrl.publicUrl);
       audioRef.current = audio;
       
@@ -69,6 +80,7 @@ const Create = () => {
 
       await audio.play();
     } catch (error) {
+      console.error('Error playing voice sample:', error);
       toast({
         title: "Error",
         description: "Failed to play voice sample",
@@ -102,6 +114,7 @@ const Create = () => {
         description: "Voice uploaded and cloned successfully",
       });
     } catch (error) {
+      console.error('Error uploading voice:', error);
       toast({
         title: "Error",
         description: "Failed to upload and clone voice",
@@ -123,6 +136,29 @@ const Create = () => {
     navigate("/create/loading");
   };
 
+  // Show error state if voice loading fails
+  if (voicesError) {
+    console.error('Voice loading error:', voicesError);
+    return (
+      <div className="min-h-screen">
+        <div className="absolute top-4 left-4 z-20">
+          <ButtonGlow onClick={() => navigate("/dashboard")} className="p-2">
+            <ArrowLeft className="w-5 h-5" />
+          </ButtonGlow>
+        </div>
+        <HeroGeometric badge="Story Creation" title1="Create Your" title2="Magical Story">
+          <div className="mt-12 w-full max-w-2xl mx-auto px-4 text-center">
+            <h3 className="text-white/90 text-lg font-medium mb-4">Error Loading Voices</h3>
+            <p className="text-white/60 mb-4">There was an error loading the voice samples. Please try again later.</p>
+            <ButtonGlow onClick={() => window.location.reload()} className="mx-auto">
+              Retry
+            </ButtonGlow>
+          </div>
+        </HeroGeometric>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <div className="absolute top-4 left-4 z-20">
@@ -141,7 +177,10 @@ const Create = () => {
           <div className="space-y-4">
             <h3 className="text-white/90 text-lg font-medium">Choose a Voice</h3>
             {isLoadingVoices ? (
-              <div className="text-white/50 text-center py-4">Loading voices...</div>
+              <div className="text-white/50 text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/50 mx-auto mb-4"></div>
+                <p>Loading voices...</p>
+              </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {voices?.map((voice) => (
