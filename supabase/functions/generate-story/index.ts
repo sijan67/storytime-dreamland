@@ -31,6 +31,44 @@ fal.config({
   credentials: Deno.env.get('FAL_AI_KEY')
 });
 
+// Helper function to handle image generation with retries
+async function generateImage(prompt: string, retries = 3): Promise<string> {
+  try {
+    console.log(`Attempting to generate image with FAL.ai. Prompt: "${prompt.substring(0, 50)}..."`);
+
+    const result = await fal.subscribe("fal-ai/flux-pro/v1.1-ultra", {
+      input: {
+        prompt,
+        image_size: {
+          width: 768,
+          height: 768
+        },
+        num_inference_steps: 25,
+      },
+      pollInterval: 1000,
+      maxRetries: 3,
+      timeout: 60000,
+    });
+
+    console.log('FAL.ai response:', JSON.stringify(result, null, 2));
+
+    if (!result?.data?.images?.[0]?.url) {
+      throw new Error('No image URL in response');
+    }
+
+    console.log('Successfully generated image:', result.data.images[0].url);
+    return result.data.images[0].url;
+  } catch (error) {
+    if (retries > 0) {
+      console.log(`FAL.ai error: ${error.message}`);
+      console.log(`Retrying image generation. Attempts remaining: ${retries - 1}`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return generateImage(prompt, retries - 1);
+    }
+    throw error;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -72,27 +110,26 @@ serve(async (req) => {
 
     // 2. Generate images and audio for each segment
     const processedSegments = await Promise.all(story.segments.map(async (segment, index) => {
-      console.log(`Processing segment ${index + 1}/${story.segments.length}`)
+      console.log(`\n=== Processing segment ${index + 1}/${story.segments.length} ===`);
 
       try {
-        // Generate image using FAL.ai client library
-        const imageResult = await fal.subscribe("fal-ai/flux-pro/v1.1-ultra", {
-          input: {
-            prompt: segment.image_description,
-            image_size: {
-              width: 768,
-              height: 768
-            },
-            num_inference_steps: 25,
-            guidance_scale: 7.5,
-          }
-        });
+        // Generate image
+        const imageUrl = await generateImage(segment.image_description);
 
-        if (!imageResult.data || !imageResult.data.images || !imageResult.data.images[0]) {
-          throw new Error('No image was generated');
-        }
+        // Add delay between segments
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Generate narration using ElevenLabs
+        console.log(`Generating narration for segment ${index + 1}. Text length: ${segment.text.length} characters`);
+        console.log('ElevenLabs request payload:', JSON.stringify({
+          text: segment.text,
+          model_id: "eleven_monolingual_v1",
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.5,
+          }
+        }, null, 2));
+
         const narrationResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
           method: 'POST',
           headers: {
@@ -107,30 +144,32 @@ serve(async (req) => {
               similarity_boost: 0.5,
             }
           }),
-        })
+        });
 
         if (!narrationResponse.ok) {
-          const error = await narrationResponse.text()
-          console.error('ElevenLabs API error:', error)
-          throw new Error(`ElevenLabs API error: ${error}`)
+          const errorText = await narrationResponse.text();
+          console.error('ElevenLabs API error response:', errorText);
+          throw new Error(`ElevenLabs API error: ${errorText}`);
         }
 
-        const narrationArrayBuffer = await narrationResponse.arrayBuffer()
-        const narrationBase64 = btoa(String.fromCharCode(...new Uint8Array(narrationArrayBuffer)))
-        console.log(`Generated narration for segment ${index + 1}`)
+        console.log(`Successfully generated narration for segment ${index + 1}`);
+        console.log('ElevenLabs response status:', narrationResponse.status);
+        console.log('ElevenLabs response headers:', JSON.stringify(Object.fromEntries(narrationResponse.headers.entries()), null, 2));
 
-        // Generate ambient sound using mock data for now
-        const ambienceBase64 = ''  // Empty for now to avoid errors
+        const narrationArrayBuffer = await narrationResponse.arrayBuffer();
+        const narrationBase64 = btoa(String.fromCharCode(...new Uint8Array(narrationArrayBuffer)));
+        console.log(`Generated narration audio. Base64 length: ${narrationBase64.length}`);
 
         return {
           ...segment,
-          imageUrl: imageResult.data.images[0].url,
+          imageUrl,
           narrationAudio: narrationBase64,
-          ambienceAudio: ambienceBase64,
+          ambienceAudio: '',
         }
       } catch (error) {
-        console.error(`Error processing segment ${index + 1}:`, error)
-        throw error
+        console.error(`Error processing segment ${index + 1}:`, error);
+        console.error('Full error details:', error);
+        throw error;
       }
     }))
 
