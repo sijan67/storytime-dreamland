@@ -43,24 +43,36 @@ const StoryPlayback = () => {
   useEffect(() => {
     const generateStory = async () => {
       try {
-        const { context, voiceId } = location.state;
-        
-        if (!context || !voiceId) {
-          throw new Error('Missing required parameters');
+        // Check if we have the required state
+        if (!location.state || !location.state.context || !location.state.voiceId) {
+          throw new Error('Missing required parameters. Please return to the create page.');
         }
 
+        const { context, voiceId } = location.state;
+        
         const response = await supabase.functions.invoke('generate-story', {
-          body: { context, voiceId }
+          body: { 
+            context,
+            voiceId
+          }
         });
 
-        if (response.error) throw response.error;
+        if (response.error) {
+          throw new Error(response.error.message || 'Failed to generate story');
+        }
+
+        if (!response.data) {
+          throw new Error('No story data received');
+        }
+
         setStory(response.data);
       } catch (err) {
         console.error('Error generating story:', err);
-        setError('Failed to generate story. Please try again.');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to generate story';
+        setError(errorMessage);
         toast({
           title: "Error",
-          description: "Failed to generate story",
+          description: errorMessage,
           variant: "destructive",
         });
       } finally {
@@ -69,7 +81,7 @@ const StoryPlayback = () => {
     };
 
     generateStory();
-  }, [location.state]);
+  }, [location.state, toast]);
 
   // Handle segment playback
   useEffect(() => {
@@ -81,13 +93,17 @@ const StoryPlayback = () => {
     // Play narration
     if (narrationRef.current) {
       narrationRef.current.src = `data:audio/mp3;base64,${currentSegment.narrationAudio}`;
-      narrationRef.current.play();
+      narrationRef.current.play().catch(err => {
+        console.error('Error playing narration:', err);
+      });
     }
 
     // Play ambience
     if (ambienceRef.current) {
       ambienceRef.current.src = `data:audio/mp3;base64,${currentSegment.ambienceAudio}`;
-      ambienceRef.current.play();
+      ambienceRef.current.play().catch(err => {
+        console.error('Error playing ambience:', err);
+      });
       ambienceRef.current.loop = true;
     }
 
@@ -128,16 +144,20 @@ const StoryPlayback = () => {
       if (isPlaying) {
         narrationRef.current.pause();
       } else {
-        narrationRef.current.play();
+        narrationRef.current.play().catch(console.error);
       }
     }
     if (ambienceRef.current) {
       if (isPlaying) {
         ambienceRef.current.pause();
       } else {
-        ambienceRef.current.play();
+        ambienceRef.current.play().catch(console.error);
       }
     }
+  };
+
+  const handleBackToCreate = () => {
+    navigate("/create");
   };
 
   if (isLoading) {
@@ -158,7 +178,7 @@ const StoryPlayback = () => {
         <div className="text-center">
           <h2 className="text-white/90 text-xl font-medium mb-4">Oops! Something went wrong</h2>
           <p className="text-white/60 mb-6">{error}</p>
-          <ButtonGlow onClick={() => navigate('/create')}>Try Again</ButtonGlow>
+          <ButtonGlow onClick={handleBackToCreate}>Try Again</ButtonGlow>
         </div>
       </div>
     );
@@ -174,7 +194,7 @@ const StoryPlayback = () => {
       <audio ref={ambienceRef} />
       
       <div className="absolute top-4 left-4 z-20">
-        <ButtonGlow onClick={() => navigate("/create")} className="p-2">
+        <ButtonGlow onClick={handleBackToCreate} className="p-2">
           <ArrowLeft className="w-5 h-5" />
         </ButtonGlow>
       </div>

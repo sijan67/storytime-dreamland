@@ -1,3 +1,4 @@
+
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
 import { ArrowLeft, Play, Upload, Pause } from "lucide-react";
@@ -119,10 +120,19 @@ const Create = () => {
       });
       return;
     }
+
+    if (!context.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a story context",
+        variant: "destructive",
+      });
+      return;
+    }
     
     navigate("/story/playback", {
       state: {
-        context,
+        context: context.trim(),
         voiceId: selectedVoice
       }
     });
