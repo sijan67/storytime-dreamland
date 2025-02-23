@@ -3,32 +3,45 @@ import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
 import { ArrowLeft, Play, Upload, Pause } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
-// Pre-defined voices from ElevenLabs
-const predefinedVoices = [
-  { id: "21m00Tcm4TlvDq8ikWAM", name: "Rachel", description: "Calm and professional" },
-  { id: "AZnzlk1XvdvUeBnXmlld", name: "Domi", description: "Strong and expressive" },
-  { id: "EXAVITQu4vr4xnSDxMaL", name: "Bella", description: "Gentle and warm" },
-  { id: "ErXwobaYiN019PkySvjV", name: "Antoni", description: "Friendly and engaging" },
-];
+interface VoiceSample {
+  voice_id: string;
+  voice_name: string;
+  description: string;
+  sample_path: string;
+}
 
 const Create = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedVoice, setSelectedVoice] = useState("");
-  const [language, setLanguage] = useState("en");
-  const [context, setContext] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentPlayingId, setCurrentPlayingId] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [context, setContext] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const playVoiceSample = async (voiceId: string) => {
+  // Fetch voice samples from the database
+  const { data: voices, isLoading: isLoadingVoices } = useQuery({
+    queryKey: ['voice-samples'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('voice_samples')
+        .select('*')
+        .order('voice_name');
+
+      if (error) throw error;
+      return data as VoiceSample[];
+    },
+  });
+
+  const playVoiceSample = async (voiceId: string, samplePath: string) => {
     try {
       if (currentPlayingId === voiceId && isPlaying) {
         audioRef.current?.pause();
@@ -40,16 +53,11 @@ const Create = () => {
       setIsPlaying(true);
       setCurrentPlayingId(voiceId);
 
-      const response = await supabase.functions.invoke('text-to-speech', {
-        body: {
-          text: "Hello! This is a sample of my voice. How do I sound?",
-          voiceId
-        }
-      });
+      const { data: publicUrl } = supabase.storage
+        .from('voice-samples')
+        .getPublicUrl(samplePath);
 
-      if (response.error) throw response.error;
-
-      const audio = new Audio(`data:audio/mpeg;base64,${response.data.audioContent}`);
+      const audio = new Audio(publicUrl.publicUrl);
       audioRef.current = audio;
       
       audio.onended = () => {
@@ -130,39 +138,43 @@ const Create = () => {
         >
           <div className="space-y-4">
             <h3 className="text-white/90 text-lg font-medium">Choose a Voice</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {predefinedVoices.map((voice) => (
-                <button
-                  key={voice.id}
-                  onClick={() => setSelectedVoice(voice.id)}
-                  className={`p-4 rounded-lg border transition-all ${
-                    selectedVoice === voice.id
-                      ? "border-white/50 bg-white/10"
-                      : "border-white/5 bg-white/[0.02] hover:bg-white/[0.05]"
-                  }`}
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h4 className="text-white/90 font-medium">{voice.name}</h4>
-                      <p className="text-white/50 text-sm">{voice.description}</p>
+            {isLoadingVoices ? (
+              <div className="text-white/50 text-center py-4">Loading voices...</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {voices?.map((voice) => (
+                  <button
+                    key={voice.voice_id}
+                    onClick={() => setSelectedVoice(voice.voice_id)}
+                    className={`p-4 rounded-lg border transition-all ${
+                      selectedVoice === voice.voice_id
+                        ? "border-white/50 bg-white/10"
+                        : "border-white/5 bg-white/[0.02] hover:bg-white/[0.05]"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="text-white/90 font-medium">{voice.voice_name}</h4>
+                        <p className="text-white/50 text-sm">{voice.description}</p>
+                      </div>
+                      <ButtonGlow
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          playVoiceSample(voice.voice_id, voice.sample_path);
+                        }}
+                        className="p-2"
+                      >
+                        {currentPlayingId === voice.voice_id && isPlaying ? (
+                          <Pause className="w-4 h-4" />
+                        ) : (
+                          <Play className="w-4 h-4" />
+                        )}
+                      </ButtonGlow>
                     </div>
-                    <ButtonGlow
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        playVoiceSample(voice.id);
-                      }}
-                      className="p-2"
-                    >
-                      {currentPlayingId === voice.id && isPlaying ? (
-                        <Pause className="w-4 h-4" />
-                      ) : (
-                        <Play className="w-4 h-4" />
-                      )}
-                    </ButtonGlow>
-                  </div>
-                </button>
-              ))}
-            </div>
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className="relative">
               <input
