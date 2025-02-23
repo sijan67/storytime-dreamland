@@ -2,9 +2,9 @@
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
 import { motion } from "framer-motion";
-import { Volume2, Pause, Play, RotateCcw, ArrowLeft, Save, Share2 } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Volume2, Pause, Play, RotateCw, ArrowLeft, Share2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,12 +13,52 @@ const Story = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { id } = useParams(); // Get story ID from URL if viewing saved story
   const [isPlaying, setIsPlaying] = useState(false);
-  
-  const story = {
-    title: "The Dragon Who Learned to Fly",
-    content: "In a magical land far beyond the clouds, there lived a young dragon named Spark. Unlike other dragons who soared through the skies with ease, Spark had never quite figured out how to fly. But that was about to change...",
-  };
+  const [story, setStory] = useState<{
+    title: string;
+    content: string;
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch story if we have an ID
+  useEffect(() => {
+    const fetchStory = async () => {
+      if (!id) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('stories')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          const parsedContent = JSON.parse(data.content);
+          setStory({
+            title: data.title,
+            content: parsedContent.content,
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching story:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load story",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStory();
+  }, [id, toast]);
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
@@ -31,43 +71,6 @@ const Story = () => {
 
   const handleNewStory = () => {
     navigate("/create");
-  };
-
-  const handleSaveStory = async () => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to save stories",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('stories')
-        .insert({
-          title: story.title,
-          content: JSON.stringify(story),
-          user_id: user.id,
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Story saved successfully!",
-      });
-
-      navigate("/dashboard");
-    } catch (error) {
-      console.error('Error saving story:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save story",
-        variant: "destructive",
-      });
-    }
   };
 
   const handleShareStory = async () => {
@@ -83,12 +86,8 @@ const Story = () => {
     try {
       const { error } = await supabase
         .from('stories')
-        .insert({
-          title: story.title,
-          content: JSON.stringify(story),
-          user_id: user.id,
-          is_public: true,
-        });
+        .update({ is_public: true })
+        .eq('id', id);
 
       if (error) throw error;
 
@@ -107,6 +106,14 @@ const Story = () => {
       });
     }
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!story) {
+    return <div>Story not found</div>;
+  }
 
   return (
     <div className="min-h-screen">
@@ -158,7 +165,7 @@ const Story = () => {
               onClick={handleRestart}
               className="flex items-center gap-2"
             >
-              <RotateCcw className="w-5 h-5" />
+              <RotateCw className="w-5 h-5" />
               Restart
             </ButtonGlow>
 
@@ -168,14 +175,6 @@ const Story = () => {
             >
               <Volume2 className="w-5 h-5" />
               New Story
-            </ButtonGlow>
-
-            <ButtonGlow
-              onClick={handleSaveStory}
-              className="flex items-center gap-2"
-            >
-              <Save className="w-5 h-5" />
-              Save Story
             </ButtonGlow>
 
             <ButtonGlow
