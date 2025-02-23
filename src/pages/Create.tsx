@@ -1,4 +1,3 @@
-
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
 import { ArrowLeft } from "lucide-react";
@@ -23,10 +22,9 @@ const Create = () => {
       <div className="absolute top-4 left-4 z-20">
         <ButtonGlow 
           onClick={() => navigate("/dashboard")} 
-          className="px-4 py-2 text-sm"
+          className="p-2"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
+          <ArrowLeft className="w-5 h-5" />
         </ButtonGlow>
       </div>
       

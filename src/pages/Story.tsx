@@ -1,4 +1,3 @@
-
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
 import { motion } from "framer-motion";
@@ -10,7 +9,6 @@ const Story = () => {
   const navigate = useNavigate();
   const [isPlaying, setIsPlaying] = useState(false);
   
-  // This is a placeholder story - will be replaced with actual generated content
   const story = {
     title: "The Dragon Who Learned to Fly",
     content: "In a magical land far beyond the clouds, there lived a young dragon named Spark. Unlike other dragons who soared through the skies with ease, Spark had never quite figured out how to fly. But that was about to change...",
@@ -34,10 +32,9 @@ const Story = () => {
       <div className="absolute top-4 left-4 z-20">
         <ButtonGlow 
           onClick={() => navigate("/dashboard")} 
-          className="px-4 py-2 text-sm"
+          className="p-2"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
+          <ArrowLeft className="w-5 h-5" />
         </ButtonGlow>
       </div>
 
