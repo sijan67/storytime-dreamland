@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -15,7 +14,6 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-// Define the Story interface
 interface Story {
   id: string;
   title: string;
@@ -83,15 +81,31 @@ const StarShape = ({
 };
 
 const Dashboard = () => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const navigate = useNavigate();
 
-  const { data: stories, isLoading } = useQuery<Story[]>({
-    queryKey: ['stories'],
+  const { data: myStories, isLoading: isLoadingMyStories } = useQuery<Story[]>({
+    queryKey: ['my-stories', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('stories')
         .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false })
+        .returns<Story[]>();
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  const { data: publicStories, isLoading: isLoadingPublicStories } = useQuery<Story[]>({
+    queryKey: ['public-stories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('stories')
+        .select('*')
+        .eq('is_public', true)
         .order('created_at', { ascending: false })
         .returns<Story[]>();
       
@@ -144,7 +158,7 @@ const Dashboard = () => {
                 </TabsTrigger>
               </TooltipTrigger>
               <TooltipContent side="right" className="px-2 py-1 text-xs">
-                Read Stories
+                Public Stories
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -180,7 +194,7 @@ const Dashboard = () => {
           <TabsContent value="your-stories" className="m-0">
             <h2 className="text-2xl font-bold mb-6">Your Stories</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {stories?.map((story) => (
+              {myStories?.map((story) => (
                 <div
                   key={story.id}
                   className="p-6 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors cursor-pointer"
@@ -192,12 +206,12 @@ const Dashboard = () => {
                   </p>
                 </div>
               ))}
-              {isLoading && (
+              {isLoadingMyStories && (
                 <div className="col-span-full text-center text-gray-400">
                   Loading stories...
                 </div>
               )}
-              {!isLoading && !stories?.length && (
+              {!isLoadingMyStories && !myStories?.length && (
                 <div className="col-span-full text-center text-gray-400">
                   No stories found. Create your first story!
                 </div>
@@ -206,9 +220,9 @@ const Dashboard = () => {
           </TabsContent>
           
           <TabsContent value="read-stories" className="m-0">
-            <h2 className="text-2xl font-bold mb-6">Read Stories</h2>
+            <h2 className="text-2xl font-bold mb-6">Public Stories</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {stories?.map((story) => (
+              {publicStories?.map((story) => (
                 <div
                   key={story.id}
                   className="p-6 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors cursor-pointer"
@@ -220,14 +234,14 @@ const Dashboard = () => {
                   </p>
                 </div>
               ))}
-              {isLoading && (
+              {isLoadingPublicStories && (
                 <div className="col-span-full text-center text-gray-400">
                   Loading stories...
                 </div>
               )}
-              {!isLoading && !stories?.length && (
+              {!isLoadingPublicStories && !publicStories?.length && (
                 <div className="col-span-full text-center text-gray-400">
-                  No stories available to read yet.
+                  No public stories available yet.
                 </div>
               )}
             </div>

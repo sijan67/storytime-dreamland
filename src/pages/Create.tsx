@@ -1,7 +1,6 @@
-
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
-import { ArrowLeft, Play, Upload, Pause } from "lucide-react";
+import { ArrowLeft, Play, Upload, Pause, Save, Share2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
@@ -10,20 +9,22 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import type { Database } from "@/types/database";
+import { useAuth } from "@/contexts/AuthContext";
 
 type VoiceSample = Database['public']['Tables']['voice_samples']['Row'];
 
 const Create = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedVoice, setSelectedVoice] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentPlayingId, setCurrentPlayingId] = useState<string | null>(null);
   const [context, setContext] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [generatedStory, setGeneratedStory] = useState<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Fetch voice samples from the database
   const { data: voices, isLoading: isLoadingVoices } = useQuery({
     queryKey: ['voice-samples'],
     queryFn: async () => {
@@ -46,7 +47,6 @@ const Create = () => {
         return;
       }
 
-      // Stop any currently playing audio
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
@@ -136,6 +136,67 @@ const Create = () => {
         voiceId: selectedVoice
       }
     });
+  };
+
+  const handleSaveStory = async () => {
+    if (!generatedStory || !user) return;
+
+    try {
+      const { error } = await supabase
+        .from('stories')
+        .insert({
+          title: generatedStory.title,
+          content: JSON.stringify(generatedStory),
+          user_id: user.id,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Story saved successfully!",
+      });
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.error('Error saving story:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save story",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShareStory = async () => {
+    if (!generatedStory || !user) return;
+
+    try {
+      const { error } = await supabase
+        .from('stories')
+        .insert({
+          title: generatedStory.title,
+          content: JSON.stringify(generatedStory),
+          user_id: user.id,
+          is_public: true,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Story shared successfully!",
+      });
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.error('Error sharing story:', error);
+      toast({
+        title: "Error",
+        description: "Failed to share story",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -228,6 +289,19 @@ const Create = () => {
           >
             Generate Story
           </ButtonGlow>
+
+          {generatedStory && (
+            <div className="flex gap-4 mt-6">
+              <ButtonGlow onClick={handleSaveStory} className="flex-1">
+                <Save className="w-4 h-4 mr-2" />
+                Save Story
+              </ButtonGlow>
+              <ButtonGlow onClick={handleShareStory} className="flex-1">
+                <Share2 className="w-4 h-4 mr-2" />
+                Share Story
+              </ButtonGlow>
+            </div>
+          )}
         </motion.div>
       </HeroGeometric>
     </div>
