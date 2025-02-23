@@ -9,6 +9,60 @@ import {
 } from "@/components/ui/tooltip";
 import { FileText, Edit, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Star } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const StarShape = ({
+  className,
+  delay = 0,
+  size = 16,
+  rotate = 0,
+  color = "text-yellow-300",
+}: {
+  className?: string;
+  delay?: number;
+  size?: number;
+  rotate?: number;
+  color?: string;
+}) => {
+  return (
+    <motion.div
+      initial={{
+        opacity: 0,
+        y: -150,
+        rotate: rotate - 15,
+      }}
+      animate={{
+        opacity: 0.3,
+        y: 0,
+        rotate: rotate,
+      }}
+      transition={{
+        duration: 2.4,
+        delay,
+        ease: [0.23, 0.86, 0.39, 0.96],
+        opacity: { duration: 1.2 },
+      }}
+      className={cn("absolute", className)}
+    >
+      <motion.div
+        animate={{
+          y: [0, 15, 0],
+          scale: [1, 1.2, 1],
+        }}
+        transition={{
+          duration: 12,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+        }}
+        className="relative"
+      >
+        <Star className={cn("w-full h-full", color)} size={size} fill="currentColor" />
+      </motion.div>
+    </motion.div>
+  );
+};
 
 const Dashboard = () => {
   const { signOut } = useAuth();
@@ -21,8 +75,23 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#1A1F2C] text-white">
-      <Tabs defaultValue="your-stories" orientation="vertical" className="flex w-full min-h-screen">
+    <div className="min-h-screen bg-[#1A1F2C] text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/30 via-transparent to-purple-900/30 blur-3xl" />
+      
+      <div className="absolute inset-0">
+        <StarShape delay={0.2} size={20} rotate={12} color="text-yellow-200" className="left-[10%] top-[15%]" />
+        <StarShape delay={0.3} size={16} rotate={-15} color="text-yellow-100" className="right-[15%] top-[25%]" />
+        <StarShape delay={0.4} size={18} rotate={8} color="text-yellow-300" className="left-[20%] bottom-[20%]" />
+        <StarShape delay={0.5} size={14} rotate={20} color="text-yellow-200" className="right-[25%] top-[40%]" />
+        <StarShape delay={0.6} size={16} rotate={-12} color="text-yellow-100" className="left-[30%] top-[60%]" />
+        <StarShape delay={0.7} size={18} rotate={15} color="text-yellow-200" className="right-[35%] bottom-[30%]" />
+        <StarShape delay={0.8} size={14} rotate={-20} color="text-yellow-300" className="left-[40%] top-[35%]" />
+        <StarShape delay={0.9} size={16} rotate={25} color="text-yellow-100" className="right-[40%] top-[55%]" />
+      </div>
+
+      <div className="absolute inset-0 bg-gradient-to-t from-[#1A1F2C] via-transparent to-[#1A1F2C]/80 pointer-events-none" />
+
+      <Tabs defaultValue="your-stories" orientation="vertical" className="flex w-full min-h-screen relative z-10">
         <TabsList className="flex-col h-screen bg-black/20 p-4 space-y-4">
           <TooltipProvider delayDuration={0}>
             <Tooltip>
