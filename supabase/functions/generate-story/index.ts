@@ -69,17 +69,20 @@ serve(async (req) => {
     const processedSegments = await Promise.all(story.segments.map(async (segment, index) => {
       console.log(`Processing segment ${index + 1}/${story.segments.length}`)
       
-      // Generate image using FAL.ai REST API
-      const imageResponse = await fetch('https://api.fal.ai/v1/models/fal-ai/flux-pro/v1.1-ultra/inference', {
+      // Generate image using FAL.ai REST API with the correct endpoint
+      const imageResponse = await fetch('https://api.fal.ai/v1/models/stable-diffusion-xl-v1-0/inferences', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${Deno.env.get('FAL_AI_KEY')}`,
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify({
-          input: {
-            prompt: segment.image_description
-          }
+          prompt: segment.image_description,
+          image_size: "768x768",
+          num_images: 1,
+          scheduler: "UniPC",
+          num_inference_steps: 25
         }),
       })
 
@@ -90,7 +93,11 @@ serve(async (req) => {
       }
 
       const imageData = await imageResponse.json()
-      console.log(`Generated image for segment ${index + 1}`)
+      console.log(`Generated image for segment ${index + 1}:`, imageData)
+
+      if (!imageData.images || !imageData.images[0]) {
+        throw new Error('No image was generated')
+      }
 
       // Generate narration using ElevenLabs
       const narrationResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
@@ -124,7 +131,7 @@ serve(async (req) => {
 
       return {
         ...segment,
-        imageUrl: imageData.images[0].url, // FAL.ai returns the image URL directly
+        imageUrl: imageData.images[0].url,
         narrationAudio: narrationBase64,
         ambienceAudio: ambienceBase64,
       }
