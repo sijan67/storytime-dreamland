@@ -1,8 +1,7 @@
-
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
+import { Home, Volume2, Play, RotateCw, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { Volume2, Play, RotateCw, ArrowLeft, Share2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -165,11 +164,8 @@ const Story = () => {
   return (
     <div className="min-h-screen">
       <div className="absolute top-4 left-4 z-20">
-        <ButtonGlow 
-          onClick={() => navigate("/dashboard")} 
-          className="p-2"
-        >
-          <ArrowLeft className="w-5 h-5" />
+        <ButtonGlow onClick={() => navigate("/dashboard")} className="p-2">
+          <Home className="w-5 h-5" />
         </ButtonGlow>
       </div>
 

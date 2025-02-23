@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Book, Wand2, ArrowLeft } from "lucide-react";
+import { Book, Wand2, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
@@ -31,11 +31,8 @@ const Choice = () => {
   return (
     <div className="min-h-screen">
       <div className="absolute top-4 left-4 z-20">
-        <ButtonGlow 
-          onClick={() => navigate("/dashboard")} 
-          className="p-2"
-        >
-          <ArrowLeft className="w-5 h-5" />
+        <ButtonGlow onClick={() => navigate("/dashboard")} className="p-2">
+          <Home className="w-5 h-5" />
         </ButtonGlow>
       </div>
 

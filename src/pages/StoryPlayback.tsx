@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { ButtonGlow } from "@/components/ui/button-glow";
-import { ArrowLeft } from "lucide-react";
+import { Home } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -255,8 +255,8 @@ const StoryPlayback = () => {
       <audio ref={ambienceRef} />
       
       <div className="absolute top-4 left-4 z-20">
-        <ButtonGlow onClick={() => navigate(-1)} className="p-2">
-          <ArrowLeft className="w-5 h-5" />
+        <ButtonGlow onClick={() => navigate("/dashboard")} className="p-2">
+          <Home className="w-5 h-5" />
         </ButtonGlow>
       </div>
 

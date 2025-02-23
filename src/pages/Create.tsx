@@ -1,7 +1,7 @@
 
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
-import { ArrowLeft, Play, Upload, Pause } from "lucide-react";
+import { Home, Play, Upload, Pause } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
@@ -185,7 +185,7 @@ const Create = () => {
     <div className="min-h-screen">
       <div className="absolute top-4 left-4 z-20">
         <ButtonGlow onClick={() => navigate("/dashboard")} className="p-2">
-          <ArrowLeft className="w-5 h-5" />
+          <Home className="w-5 h-5" />
         </ButtonGlow>
       </div>
       
