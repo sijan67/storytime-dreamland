@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,6 +5,7 @@ import { ButtonGlow } from "@/components/ui/button-glow";
 import { ArrowLeft, ArrowRight, Play, Pause } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import CreateLoading from './CreateLoading';
 
 interface StorySegment {
   text: string;
@@ -162,13 +162,7 @@ const StoryPlayback = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white/50 mx-auto mb-4"></div>
-          <h2 className="text-white/90 text-xl font-medium">Generating your story...</h2>
-          <p className="text-white/60 mt-2">This might take a few moments</p>
-        </div>
-      </div>
+      <CreateLoading />
     );
   }
 
