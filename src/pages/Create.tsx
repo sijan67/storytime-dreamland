@@ -3,19 +3,15 @@ import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { ButtonGlow } from "@/components/ui/button-glow";
 import { ArrowLeft, Play, Upload, Pause } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import type { Database } from "@/types/database";
 
-interface VoiceSample {
-  voice_id: string;
-  voice_name: string;
-  description: string;
-  sample_path: string;
-}
+type VoiceSample = Database['public']['Tables']['voice_samples']['Row'];
 
 const Create = () => {
   const navigate = useNavigate();
