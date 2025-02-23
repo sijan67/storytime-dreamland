@@ -15,6 +15,15 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define the Story interface
+interface Story {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+}
+
 const StarShape = ({
   className,
   delay = 0,
@@ -77,16 +86,17 @@ const Dashboard = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
-  const { data: stories, isLoading } = useQuery({
+  const { data: stories, isLoading } = useQuery<Story[]>({
     queryKey: ['stories'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('stories')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .returns<Story[]>();
       
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 
