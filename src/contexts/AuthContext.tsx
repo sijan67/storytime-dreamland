@@ -16,26 +16,40 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log("Setting up auth state...");
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("Initial session:", session ? "exists" : "none");
-      setSession(session);
-      setUser(session?.user ?? null);
+    // Immediately check for an existing session
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      console.log("Initial session check:", initialSession ? "Found session" : "No session");
+      if (initialSession) {
+        setSession(initialSession);
+        setUser(initialSession.user);
+      }
+      setIsLoading(false);
     });
 
-    // Listen for auth changes
+    // Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("Auth state changed:", _event);
-      setSession(session);
-      setUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      console.log("Auth state changed:", event, currentSession ? "Has session" : "No session");
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+
+      // If the session changes, we want to make sure it's properly synced
+      if (event === 'SIGNED_IN') {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setSession(session);
+          setUser(session.user);
+        }
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -58,6 +72,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };
+
+  // Don't render children until we've checked for an existing session
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <AuthContext.Provider value={{ session, user, signIn, signUp, signOut }}>
